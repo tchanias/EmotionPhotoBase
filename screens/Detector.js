@@ -10,24 +10,21 @@ import {
 import {apiUrl, headers, subKey} from '../constants/constants';
 import ImagePicker from 'react-native-image-picker';
 import Button from '../Components/UI/Button';
-import RNFetchBlob from 'react-native-fetch-blob';
+import RNFetchBlob from 'rn-fetch-blob';
 import _ from 'lodash';
 
-
-
 const image_picker_options = {
-  title: 'Select Photo', 
-  takePhotoButtonTitle: 'Take Photo...', 
+  title: 'Select Photo',
+  takePhotoButtonTitle: 'Take Photo...',
   chooseFromLibraryButtonTitle: 'Choose from Library...',
-  cameraType: 'back', 
+  cameraType: 'back',
   mediaType: 'photo',
   maxWidth: 480,
-  maxHeight:480,
-  quality: 1, 
-  noData: false, 
-  path: 'images'
+  maxHeight: 480,
+  quality: 1,
+  noData: false,
+  path: 'images',
 };
-
 
 export class Detector extends React.Component {
   constructor(props) {
@@ -44,17 +41,17 @@ export class Detector extends React.Component {
     };
   }
 
-  findDominantEmotion=(emotions)=>{
-    let dominantValue=-1;
-    let dominantKey='Dominant Emotion not found!';
-    Object.keys(emotions).map((emotion)=>{
-      if(emotions[emotion]>dominantValue){
-        dominantValue=emotions[emotion];
-        dominantKey=emotion;
+  findDominantEmotion = emotions => {
+    let dominantValue = -1;
+    let dominantKey = 'Dominant Emotion not found!';
+    Object.keys(emotions).map(emotion => {
+      if (emotions[emotion] > dominantValue) {
+        dominantValue = emotions[emotion];
+        dominantKey = emotion;
       }
-    })
+    });
     return [dominantKey, dominantValue];
-  }
+  };
 
   render() {
     return (
@@ -65,15 +62,15 @@ export class Detector extends React.Component {
           resizeMode={'contain'}>
           {this._renderFaceBoxes.call(this)}
         </ImageBackground>
-      <View style={styles.ButtonContainer}>
-        <Button
-          text="Pick Photo"
-          onpress={this._pickImage.bind(this)}
-          button_styles={styles.button}
-          button_text_styles={styles.button_text}
-        />
+        <View style={styles.ButtonContainer}>
+          <Button
+            text="Pick Photo"
+            onpress={this._pickImage.bind(this)}
+            button_styles={styles.button}
+            button_text_styles={styles.button_text}
+          />
 
-        {/* {this._renderDetectFacesButton.call(this)} */}
+          {/* {this._renderDetectFacesButton.call(this)} */}
         </View>
       </View>
     );
@@ -84,15 +81,14 @@ export class Detector extends React.Component {
       face_data: null,
     });
 
-    ImagePicker.showImagePicker(
-      image_picker_options,
-      response => {
-        if (response.error) {
-          alert('Error getting the image. Please try again.');
-        } else {
-          let source = {uri: response.uri};
+    ImagePicker.showImagePicker(image_picker_options, response => {
+      if (response.error) {
+        alert('Error getting the image. Please try again.');
+      } else {
+        let source = {uri: response.uri};
 
-          this.setState({
+        this.setState(
+          {
             photo_style: {
               position: 'relative',
               width: response.width,
@@ -101,13 +97,13 @@ export class Detector extends React.Component {
             has_photo: true,
             photo: source,
             photo_data: response.data,
-          },()=>{
+          },
+          () => {
             this._detectFaces();
-          });
-
-        }
-      },
-    );
+          },
+        );
+      }
+    });
   }
 
   _renderDetectFacesButton() {
@@ -124,7 +120,7 @@ export class Detector extends React.Component {
   }
 
   _detectFaces() {
-    console.log(this.state.photo_data,'detect faces: data')
+    console.log(this.state.photo_data, 'detect faces: data');
     RNFetchBlob.fetch(
       'POST',
       apiUrl,
@@ -136,11 +132,11 @@ export class Detector extends React.Component {
       this.state.photo_data,
     )
       .then(res => {
-        console.log(res,'res');
+        console.log(res, 'res');
         return res.json();
       })
       .then(json => {
-        console.log(json,'json');
+        console.log(json, 'json');
         if (json.length) {
           this.setState({
             face_data: json,
@@ -169,7 +165,9 @@ export class Detector extends React.Component {
           left: x.faceRectangle.left,
         };
 
-        const [emotion, emotionPercentage] = this.findDominantEmotion(x.faceAttributes.emotion);
+        const [emotion, emotionPercentage] = this.findDominantEmotion(
+          x.faceAttributes.emotion,
+        );
 
         let style = {
           width: x.faceRectangle.width,
@@ -207,11 +205,11 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#ccc',
   },
-  ButtonContainer:{
-    display:'flex',
-    flexDirection:'row',
-    justifyContent:'space-around',
-    alignItems:'center',
+  ButtonContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   button: {
     margin: 10,

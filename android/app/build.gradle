@@ -188,8 +188,7 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-image-picker')
-    compile project(':react-native-fetch-blob')
+    implementation project(':react-native-image-picker')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
 compile project(':react-native-image-picker')

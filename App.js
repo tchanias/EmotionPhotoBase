@@ -23,60 +23,13 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
-import Detector from './screens/Detector';
+import AppNavigator from './navigation/AppNavigator';
 
-
-
-const App = () => {
-  return (
-    // <Fragment>
-    //   <StatusBar barStyle="dark-content" />
-    //   <SafeAreaView>
-    //     <ScrollView
-    //       contentInsetAdjustmentBehavior="automatic"
-    //       style={styles.scrollView}>
-    //       <Header />
-    //       {global.HermesInternal == null ? null : (
-    //         <View style={styles.engine}>
-    //           <Text style={styles.footer}>Engine: Hermes</Text>
-    //         </View>
-    //       )}
-    //       <View style={styles.body}>
-    //         <View style={styles.sectionContainer}>
-    //           <Text style={styles.sectionTitle}>Step One</Text>
-    //           <Text style={styles.sectionDescription}>
-    //             Edit <Text style={styles.highlight}>App.js</Text> to change this
-    //             screen and then come back to see your edits.
-    //           </Text>
-    //         </View>
-    //         <View style={styles.sectionContainer}>
-    //           <Text style={styles.sectionTitle}>See Your Changes</Text>
-    //           <Text style={styles.sectionDescription}>
-    //             <ReloadInstructions />
-    //           </Text>
-    //         </View>
-    //         <View style={styles.sectionContainer}>
-    //           <Text style={styles.sectionTitle}>Debug</Text>
-    //           <Text style={styles.sectionDescription}>
-    //             <DebugInstructions />
-    //           </Text>
-    //         </View>
-    //         <View style={styles.sectionContainer}>
-    //           <Text style={styles.sectionTitle}>Learn More</Text>
-    //           <Text style={styles.sectionDescription}>
-    //             Read the docs to discover what to do next:
-    //           </Text>
-    //         </View>
-    //         <LearnMoreLinks />
-    //       </View>
-    //     </ScrollView>
-    //   </SafeAreaView>
-    // </Fragment>
-    <View style={styles.container}>
-    <Detector />
-    </View>
-  );
-};
+export default class App extends React.Component {
+  render() {
+    return <AppNavigator />;
+  }
+}
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -122,5 +75,3 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
 });
-
-export default App;
