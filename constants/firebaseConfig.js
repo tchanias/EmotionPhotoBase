@@ -8,4 +8,27 @@ let config = {
   messagingSenderId: 'XXXXXXX',
 };
 let app = Firebase.initializeApp(config);
-export const db = app.database();
+export const firebase = app.database();
+export const firebaseAuth = app.auth();
+
+export const LogOut = () => {
+  return firebaseAuth.signOut();
+};
+
+export const LogIn = (email, password) => {
+  return firebaseAuth.signInWithEmailAndPassword(email, password);
+};
+
+export const CreateUser = (email, password) => {
+  return firebaseAuth.createUserWithEmailAndPassword(email, password);
+};
+
+export const isUserSignedIn = () => {
+  return firebaseAuth.onAuthStateChanged(user => {
+    if (user) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+};

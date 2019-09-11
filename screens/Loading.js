@@ -1,13 +1,19 @@
-import React from 'react'
+import React from 'react';
 import {View, Text, ActivityIndicator, StyleSheet} from 'react-native';
-// import firebase from 'react-native-firebase';
+import {
+  firebase,
+  firebaseAuth,
+  isUserSignedIn,
+} from '../constants/firebaseConfig';
 
 export default class Loading extends React.Component {
-    // componentDidMount() {
-    //     firebase.auth().onAuthStateChanged(user => {
-    //         this.props.navigation.navigate(user ? 'Detector' : 'Register')
-    //     });
-    // };
+  componentDidMount() {
+    if (isUserSignedIn()) {
+      this.props.navigation.navigate('Detector');
+    } else {
+      this.props.navigation.navigate('Home');
+    }
+  }
 
   render() {
     return (
@@ -15,7 +21,7 @@ export default class Loading extends React.Component {
         <Text>Loading</Text>
         <ActivityIndicator size="large" />
       </View>
-    )
+    );
   }
 }
 const styles = StyleSheet.create({
@@ -23,5 +29,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  }
-})
+  },
+});

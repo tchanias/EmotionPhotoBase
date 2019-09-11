@@ -6,12 +6,20 @@ import {
   View,
   Image,
   ImageBackground,
+  TouchableOpacity,
+  Alert,
+  Button as RNButton,
 } from 'react-native';
 import {apiUrl, headers, subKey} from '../constants/constants';
 import ImagePicker from 'react-native-image-picker';
 import Button from '../Components/UI/Button';
 import RNFetchBlob from 'rn-fetch-blob';
 import _ from 'lodash';
+import {
+  firebaseAuth,
+  LogOut,
+  isUserSignedIn,
+} from '../constants/firebaseConfig';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -40,6 +48,53 @@ export class Detector extends React.Component {
       face_data: null,
     };
   }
+
+  componentDidMount() {
+    setTimeout(() => {
+      this.props.navigation.setParams({
+        LogIn: this.signIn,
+        LogOut: this.signOut,
+      });
+    }, 3000);
+  }
+
+  static navigationOptions = navData => {
+    return {
+      headerTitle: 'Detect Face Emotions',
+      headerRight: (
+        <TouchableOpacity
+          onPress={() => {
+            if (isUserSignedIn()) {
+              console.log(
+                'User previously signed in',
+                'Logging Out...',
+                navData,
+              );
+              return navData.navigation.getParam('LogOut');
+            } else {
+              Alert.alert('User not signed in', 'Navigating to Log in...');
+              return navData.navigation.getParam('LogIn');
+            }
+          }}>
+          <Text>{isUserSignedIn() ? 'Log Out' : 'Log In'}</Text>
+        </TouchableOpacity>
+      ),
+    };
+  };
+
+  signIn = () => {
+    this.props.navigation.navigate('Login');
+    Alert.alert('User not signed in', 'Log in.');
+  };
+
+  signOut = () => {
+    Alert.alert('User previously signed in', 'About to Log Out.');
+    console.log('User previously signed in', 'About to Log Out.');
+    LogOut().then(() => {
+      Alert.alert('User previously signed in', 'Logged Out.');
+      this.props.navigation.navigate('Login');
+    });
+  };
 
   findDominantEmotion = emotions => {
     let dominantValue = -1;
