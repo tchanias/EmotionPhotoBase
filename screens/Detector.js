@@ -10,15 +10,22 @@ import {
   Alert,
   Button as RNButton,
 } from 'react-native';
-import {apiUrl, headers, subKey} from '../constants/constants';
+import {
+  apiUrl,
+  headers,
+  subKey,
+  clearAsyncStorage,
+} from '../constants/constants';
 import ImagePicker from 'react-native-image-picker';
 import Button from '../Components/UI/Button';
 import RNFetchBlob from 'rn-fetch-blob';
 import _ from 'lodash';
 import {
+  firebase,
   firebaseAuth,
   LogOut,
   isUserSignedIn,
+  app,
 } from '../constants/firebaseConfig';
 
 const image_picker_options = {
@@ -50,6 +57,9 @@ export class Detector extends React.Component {
   }
 
   componentDidMount() {
+    this.detectorListener = this.props.navigation.addListener('didFocus', () =>
+      this.redirectionLoadParams(),
+    );
     setTimeout(() => {
       this.props.navigation.setParams({
         LogIn: this.signIn,
@@ -58,23 +68,26 @@ export class Detector extends React.Component {
     }, 3000);
   }
 
-  static navigationOptions = navData => {
+  componentWillUnmount() {
+    this.detectorListener.remove();
+  }
+
+  static navigationOptions = ({navigation}) => {
     return {
+      headerLeft: null,
       headerTitle: 'Detect Face Emotions',
       headerRight: (
         <TouchableOpacity
           onPress={() => {
-            if (isUserSignedIn()) {
-              console.log(
-                'User previously signed in',
-                'Logging Out...',
-                navData,
-              );
-              return navData.navigation.getParam('LogOut');
-            } else {
-              Alert.alert('User not signed in', 'Navigating to Log in...');
-              return navData.navigation.getParam('LogIn');
-            }
+            firebaseAuth.onAuthStateChanged(user => {
+              if (user) {
+                console.log('User signed in', 'Logging Out...');
+                navigation.state.params.LogOut();
+              } else {
+                Alert.alert('User not signed in', 'Navigating to Log in...');
+                navigation.state.params.LogIn();
+              }
+            });
           }}>
           <Text>{isUserSignedIn() ? 'Log Out' : 'Log In'}</Text>
         </TouchableOpacity>
@@ -82,18 +95,27 @@ export class Detector extends React.Component {
     };
   };
 
+  redirectionLoadParams = () => {
+    this.props.navigation.setParams({
+      LogIn: this.signIn,
+      LogOut: this.signOut,
+    });
+  };
   signIn = () => {
     this.props.navigation.navigate('Login');
     Alert.alert('User not signed in', 'Log in.');
   };
 
-  signOut = () => {
-    Alert.alert('User previously signed in', 'About to Log Out.');
-    console.log('User previously signed in', 'About to Log Out.');
-    LogOut().then(() => {
-      Alert.alert('User previously signed in', 'Logged Out.');
-      this.props.navigation.navigate('Login');
-    });
+  signOut = async () => {
+    await app
+      .auth()
+      .signOut()
+      .then(function() {
+        this.props.navigation.navigate('Loading');
+      })
+      .catch(function(error) {
+        Alert.alert('Error during log out!', error.message);
+      });
   };
 
   findDominantEmotion = emotions => {

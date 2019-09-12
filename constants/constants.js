@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-community/async-storage';
 export const subKey = '2bfab510b0f54217b9b3f06cf810af12';
 export const faceApi =
   'https://emotion-detector.cognitiveservices.azure.com/face/v1.0/detect';
@@ -123,6 +124,9 @@ export const Base64 = {
 
 export const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
+export const clearAsyncStorage = async () => {
+  AsyncStorage.clear();
+};
 // export function parseUrlParams(urlParams) {
 //     const joinByEquals = (pair) => pair.join('=')
 //     const params = Object.entries(urlParams).map(joinByEquals).join('&')

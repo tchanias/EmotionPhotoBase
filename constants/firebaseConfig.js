@@ -7,12 +7,12 @@ let config = {
   storageBucket: 'emotiondetector-fa95c.appspot.com',
   messagingSenderId: 'XXXXXXX',
 };
-let app = Firebase.initializeApp(config);
+export let app = Firebase.initializeApp(config);
 export const firebase = app.database();
 export const firebaseAuth = app.auth();
 
 export const LogOut = () => {
-  return firebaseAuth.signOut();
+  return Firebase.auth().signOut();
 };
 
 export const LogIn = (email, password) => {
@@ -21,6 +21,10 @@ export const LogIn = (email, password) => {
 
 export const CreateUser = (email, password) => {
   return firebaseAuth.createUserWithEmailAndPassword(email, password);
+};
+
+export const getCurrentUser = () => {
+  return firebaseAuth.currentUser;
 };
 
 export const isUserSignedIn = () => {

@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import {Button, View, Text, TextInput, Alert} from 'react-native';
 import {emailRegex} from '../constants/constants';
-import {firebaseAuth, LogIn} from '../constants/firebaseConfig';
+import {firebaseAuth, LogIn, isUserSignedIn} from '../constants/firebaseConfig';
+import {throwStatement} from '@babel/types';
 
 export default class Register extends Component {
   constructor(props) {
@@ -9,15 +10,40 @@ export default class Register extends Component {
     this.state = {
       email: '',
       password: '',
-      confirmPassword: '',
       errorMessage: '',
     };
   }
 
-  SignIn = () => {
+  componentDidMount() {
+    this.loginListener = this.props.navigation.addListener('didFocus', () =>
+      this.displayLogStatusText(),
+    );
+    this.displayLogStatusText();
+  }
+
+  componentWillUnmount() {
+    this.loginListener.remove();
+  }
+
+  signUserIn = () => {
     LogIn(this.state.email, this.state.password)
       .then(() => this.props.navigation.navigate('Main'))
-      .catch(error => this.setState({errorMessage: error.message}));
+      .catch(error => this.displaySignAttemptError(error.message));
+  };
+
+  displaySignAttemptError = error => {
+    Alert.alert('Login attempt faied!', error);
+    this.setState({errorMessage: error});
+  };
+
+  displayLogStatusText = () => {
+    firebaseAuth.onAuthStateChanged(user => {
+      if (user) {
+        this.setState({topText: 'Account Signed In'});
+      } else {
+        return this.setState({topText: 'Account not signed in'});
+      }
+    });
   };
 
   onChangeText = (text, field) => {
@@ -26,30 +52,20 @@ export default class Register extends Component {
     });
   };
 
-  confirmRegistration = () => {
+  confirmLogin = () => {
     if (!emailRegex.test(this.state.email)) {
       Alert.alert('Validation Error', 'Email address is not valid!');
       this.setState({errorMessage: 'Email address is not valid!'});
-    } else if (this.state.password !== this.state.confirmPassword) {
-      Alert.alert('Validation Error', 'Password fields do not match!');
-      this.setState({errorMessage: 'Password fields do not match!'});
-    } else if (this.state.password.length < 6) {
-      Alert.alert(
-        'Validation Error',
-        'Password must be at least 6 characters long!',
-      );
-      this.setState({
-        errorMessage: 'Password must be at least 6 characters long!',
-      });
     } else {
-      this.addUser();
+      this.signUserIn();
     }
   };
 
   render() {
     return (
       <View style={styles.registrationContainer}>
-        <Text>Register Screen</Text>
+        <Text>{this.displayLogStatusText()}</Text>
+        <Text>Login Screen</Text>
         {/* <Button
           title="Detect Photo Emotions"
           onPress={() => this.props.navigation.navigate('Detector')}
@@ -75,28 +91,17 @@ export default class Register extends Component {
               autoCompleteType={'password'}
             />
           </View>
-          <View style={styles.row}>
-            <Text style={styles.formLabel}>Confirm Password:</Text>
-            <TextInput
-              style={styles.inputField}
-              onChangeText={text => this.onChangeText(text, 'confirmPassword')}
-              value={this.state.confirmPassword}
-            />
-          </View>
         </View>
         <View style={(styles.row, styles.buttonRow)}>
-          <Button
-            title={'Confirm'}
-            onPress={() => this.confirmRegistration()}
-          />
+          <Button title={'Confirm'} onPress={() => this.confirmLogin()} />
           <Text style={styles.errorText}>{this.state.errorMessage}</Text>
         </View>
         <View style={styles.redirectToLoginView}>
-          <Text>Already have an account? </Text>
+          <Text>New user? </Text>
           <Text
             style={styles.hyperLink}
-            onPress={() => this.props.navigation.navigate('Login')}>
-            Log in here
+            onPress={() => this.props.navigation.navigate('Register')}>
+            Create a new account here
           </Text>
         </View>
       </View>

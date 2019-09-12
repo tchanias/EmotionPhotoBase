@@ -1,4 +1,4 @@
-import {createAppContainer} from 'react-navigation';
+import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import Detector from '../screens/Detector';
 import Register from '../screens/Register';
@@ -6,11 +6,14 @@ import Login from '../screens/Login';
 import Home from '../screens/Home';
 import Loading from '../screens/Loading';
 
-const AppNavigator = createStackNavigator({
-  Loading,
-  Home,
-  Detector,
-  Register,
-  Login,
-});
+const AppNavigator = createStackNavigator(
+  {
+    Loading,
+    Home,
+    Detector,
+    Register,
+    Login,
+  },
+  {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
+);
 export default createAppContainer(AppNavigator);
