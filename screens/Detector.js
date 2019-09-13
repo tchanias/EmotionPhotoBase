@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   Alert,
   Button as RNButton,
+  Modal,
+  FlatList,
+  TouchableHighlight,
 } from 'react-native';
 import {
   apiUrl,
@@ -53,6 +56,7 @@ export class Detector extends React.Component {
       has_photo: false,
       photo: null,
       face_data: null,
+      modalVisible: false,
     };
   }
 
@@ -75,21 +79,24 @@ export class Detector extends React.Component {
   static navigationOptions = ({navigation}) => {
     return {
       headerLeft: null,
-      headerTitle: 'Detect Face Emotions',
+      // headerTitle: 'Detect Face Emotions',
+      headerTitle: firebaseAuth.currentUser
+        ? firebaseAuth.currentUser.email
+        : '',
       headerRight: (
         <TouchableOpacity
           onPress={() => {
-            firebaseAuth.onAuthStateChanged(user => {
-              if (user) {
-                console.log('User signed in', 'Logging Out...');
-                navigation.state.params.LogOut();
-              } else {
-                Alert.alert('User not signed in', 'Navigating to Log in...');
-                navigation.state.params.LogIn();
-              }
-            });
+            let user = firebaseAuth.currentUser;
+            if (user) {
+              navigation.state.params.LogOut();
+            } else {
+              navigation.state.params.LogIn();
+            }
           }}>
-          <Text>{isUserSignedIn() ? 'Log Out' : 'Log In'}</Text>
+          {/* <Text>
+            {firebaseAuth.currentUser ? firebaseAuth.currentUser.email : ''}
+          </Text> */}
+          <Text>{firebaseAuth.currentUser ? 'Log Out' : 'Log In'}</Text>
         </TouchableOpacity>
       ),
     };
@@ -102,20 +109,23 @@ export class Detector extends React.Component {
     });
   };
   signIn = () => {
-    this.props.navigation.navigate('Login');
-    Alert.alert('User not signed in', 'Log in.');
+    this.props.navigation.navigate('AuthLoading');
   };
 
   signOut = async () => {
-    await app
-      .auth()
+    await firebaseAuth
       .signOut()
-      .then(function() {
-        this.props.navigation.navigate('Loading');
+      .then(() => {
+        Alert.alert('', 'inside then');
+        this.props.navigation.navigate('AuthLoading');
       })
       .catch(function(error) {
         Alert.alert('Error during log out!', error.message);
       });
+  };
+
+  setModalVisible = visible => {
+    this.setState({modalVisible: visible});
   };
 
   findDominantEmotion = emotions => {
@@ -131,8 +141,43 @@ export class Detector extends React.Component {
   };
 
   render() {
+    let modalObject = this.state.face_data
+      ? this.state.face_data.faceAttributes
+        ? this.state.face_data.faceAttributes.emotion
+          ? this.state.face_data.faceAttributes.emotion
+          : {}
+        : {}
+      : {};
     return (
       <View style={styles.container}>
+        <Modal
+          animationType="slide"
+          presentationStyle={'pageSheet'}
+          transparent={false}
+          visible={this.state.modalVisible}
+          onRequestClose={() => {
+            Alert.alert('Modal has been closed.');
+          }}>
+          <View style={{marginTop: 22}}>
+            <View>
+              <View style={{backgroundColor: 'white'}}>
+                <Text>Anger:{modalObject[0]}</Text>
+                <Text>Contempt:{modalObject[1]}</Text>
+                <Text>Anger:{modalObject[2]}</Text>
+                <Text>Anger:{modalObject[3]}</Text>
+                <Text>Anger:{modalObject[4]}</Text>
+                <Text>Anger:{modalObject[5]}</Text>
+              </View>
+              <RNButton
+                title="Hide Modal"
+                onPress={() => {
+                  this.setModalVisible(false);
+                }}
+              />
+            </View>
+          </View>
+        </Modal>
+
         <ImageBackground
           style={this.state.photo_style}
           source={this.state.photo}
@@ -146,7 +191,12 @@ export class Detector extends React.Component {
             button_styles={styles.button}
             button_text_styles={styles.button_text}
           />
-
+          <Button
+            text="View Data"
+            onpress={() => this.setModalVisible(true)}
+            button_styles={styles.button}
+            button_text_styles={styles.button_text}
+          />
           {/* {this._renderDetectFacesButton.call(this)} */}
         </View>
       </View>

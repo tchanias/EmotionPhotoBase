@@ -16,7 +16,7 @@ export default class Register extends Component {
 
   addUser = () => {
     CreateUser(this.state.email, this.state.password)
-      .then(() => this.props.navigation.navigate('Detector'))
+      .then(() => this.props.navigation.navigate('App'))
       .catch(error => this.setState({errorMessage: error.message}));
   };
 

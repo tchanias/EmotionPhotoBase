@@ -6,14 +6,22 @@ import Login from '../screens/Login';
 import Home from '../screens/Home';
 import Loading from '../screens/Loading';
 
-const AppNavigator = createStackNavigator(
+const AppStack = createStackNavigator(
   {
-    Loading,
-    Home,
     Detector,
-    Register,
-    Login,
   },
   {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
 );
-export default createAppContainer(AppNavigator);
+const AuthStack = createStackNavigator({Login, Register});
+export default createAppContainer(
+  createSwitchNavigator(
+    {
+      AuthLoading: Loading,
+      App: AppStack,
+      Auth: AuthStack,
+    },
+    {
+      initialRouteName: 'AuthLoading',
+    },
+  ),
+);

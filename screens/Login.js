@@ -14,20 +14,23 @@ export default class Register extends Component {
     };
   }
 
-  componentDidMount() {
-    this.loginListener = this.props.navigation.addListener('didFocus', () =>
-      this.displayLogStatusText(),
-    );
-    this.displayLogStatusText();
-  }
+  // componentDidMount() {
+  //
+  // this.loginListener = this.props.navigation.addListener('didFocus', () =>
+  //   this.displayLogStatusText(),
+  // );
+  // this.displayLogStatusText();
+  //}
 
-  componentWillUnmount() {
-    this.loginListener.remove();
-  }
+  // componentWillUnmount() {
+  //   this.loginListener.remove();
+  // }
 
   signUserIn = () => {
     LogIn(this.state.email, this.state.password)
-      .then(() => this.props.navigation.navigate('Main'))
+      .then(() => {
+        this.props.navigation.navigate('AuthLoading');
+      })
       .catch(error => this.displaySignAttemptError(error.message));
   };
 
@@ -37,13 +40,12 @@ export default class Register extends Component {
   };
 
   displayLogStatusText = () => {
-    firebaseAuth.onAuthStateChanged(user => {
-      if (user) {
-        this.setState({topText: 'Account Signed In'});
-      } else {
-        return this.setState({topText: 'Account not signed in'});
-      }
-    });
+    let user = firebaseAuth.currentUser;
+    if (user) {
+      this.setState({topText: 'Account Signed In'});
+    } else {
+      return this.setState({topText: 'Account not signed in'});
+    }
   };
 
   onChangeText = (text, field) => {
@@ -64,7 +66,6 @@ export default class Register extends Component {
   render() {
     return (
       <View style={styles.registrationContainer}>
-        <Text>{this.displayLogStatusText()}</Text>
         <Text>Login Screen</Text>
         {/* <Button
           title="Detect Photo Emotions"

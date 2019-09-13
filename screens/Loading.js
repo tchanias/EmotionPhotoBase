@@ -9,21 +9,25 @@ import {
 
 export default class Loading extends React.Component {
   componentDidMount() {
-    this.loadingListener = this.props.navigation.addListener('didFocus', () =>
-      this.redirectBasedOnLogStatus(),
-    );
+    // this.loadingListener = this.props.navigation.addListener('didFocus', () =>
+    //   this.redirectBasedOnLogStatus(),
+    // );
     this.redirectBasedOnLogStatus();
   }
 
-  redirectBasedOnLogStatus = () => {
+  redirectBasedOnLogStatus = async () => {
     try {
-      firebaseAuth.onAuthStateChanged(user => {
-        if (user) {
-          this.props.navigation.navigate('Detector');
-        } else {
-          this.props.navigation.navigate('Login');
-        }
-      });
+      let user = firebaseAuth.currentUser;
+      if (user) {
+        Alert.alert('', 'Successfully Signed In');
+        this.props.navigation.navigate('App');
+      } else {
+        Alert.alert(
+          'Please sign in!',
+          'If you are a new user please create a new account!',
+        );
+        this.props.navigation.navigate('Auth');
+      }
     } catch (error) {
       Alert.alert('Error Occured!', error);
     }
@@ -35,9 +39,9 @@ export default class Loading extends React.Component {
     // }
   };
 
-  componentWillUnmount() {
-    this.loadingListener.remove();
-  }
+  // componentWillUnmount() {
+  //   this.loadingListener.remove();
+  // }
 
   render() {
     return (
