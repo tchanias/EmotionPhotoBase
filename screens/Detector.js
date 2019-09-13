@@ -140,14 +140,37 @@ export class Detector extends React.Component {
     return [dominantKey, dominantValue];
   };
 
+  mapJsonData = () => {
+    if (this.state.face_data) {
+      let views = _.map(this.state.face_data, x => {
+        let emotions = x.faceAttributes.emotion;
+
+        return (
+          <View style={{backgroundColor: 'white'}}>
+            <Text>Anger:{emotions['anger']}</Text>
+            <Text>Contempt:{emotions['contempt']}</Text>
+            <Text>Disgust:{emotions['disgust']}</Text>
+            <Text>Fear:{emotions['fear']}</Text>
+            <Text>Happiness:{emotions['happiness']}</Text>
+            <Text>Neutral:{emotions['neutral']}</Text>
+            <Text>Sadness:{emotions['sadness']}</Text>
+            <Text>Surprise:{emotions['surprise']}</Text>
+          </View>
+        );
+      });
+      return <View>{views}</View>;
+    }
+  };
+
   render() {
-    let modalObject = this.state.face_data
-      ? this.state.face_data.faceAttributes
-        ? this.state.face_data.faceAttributes.emotion
-          ? this.state.face_data.faceAttributes.emotion
-          : {}
-        : {}
-      : {};
+    // let modalObject = this.state.face_data
+    //   ? this.state.face_data.faceAttributes
+    //     ? this.state.face_data.faceAttributes.emotion
+    //       ? this.state.face_data.faceAttributes.emotion
+    //       : {}
+    //     : {}
+    //   : {};
+    // let modalObject = this.state.face_data ? this.state.face_data : {};
     return (
       <View style={styles.container}>
         <Modal
@@ -160,14 +183,8 @@ export class Detector extends React.Component {
           }}>
           <View style={{marginTop: 22}}>
             <View>
-              <View style={{backgroundColor: 'white'}}>
-                <Text>Anger:{modalObject[0]}</Text>
-                <Text>Contempt:{modalObject[1]}</Text>
-                <Text>Anger:{modalObject[2]}</Text>
-                <Text>Anger:{modalObject[3]}</Text>
-                <Text>Anger:{modalObject[4]}</Text>
-                <Text>Anger:{modalObject[5]}</Text>
-              </View>
+              {this.mapJsonData()}
+
               <RNButton
                 title="Hide Modal"
                 onPress={() => {
