@@ -73,6 +73,7 @@ export class Detector extends React.Component {
   }
 
   componentWillUnmount() {
+    this.setModalVisible(false)
     this.detectorListener.remove();
   }
 
@@ -142,11 +143,28 @@ export class Detector extends React.Component {
 
   mapJsonData = () => {
     if (this.state.face_data) {
-      let views = _.map(this.state.face_data, x => {
+      let views = _.map(this.state.face_data, (x,key) => {
         let emotions = x.faceAttributes.emotion;
-
+        let gender = x.faceAttributes.gender;
+        let smile = x.faceAttributes.smile;
+        let age = x.faceAttributes.age;
+        let glasses = x.faceAttributes.glasses;
+        let bald = x.faceAttributes.hair.bald;
+        let hairColor= x.faceAttributes.hair?x.faceAttributes.hair[0]?x.faceAttributes.hair[0].hairColor?x.faceAttributes.hair[0].hairColor:'No hair':'No hair':'No hair';
+        let hairColorConfidence= x.faceAttributes.hair?x.faceAttributes.hair[0]?x.faceAttributes.hair[0].confidence?x.faceAttributes.hair[0].confidence:'':'':'';
+        let accessories= x.faceAttributes.accessories?x.faceAttributes.accessories.length?x.faceAttributes.accessories.length>=1?x.faceAttributes.accessories:'No Accessories'
+        :'No Accessories':'No Accessories';
+        let moustache = x.faceAttributes.facialHair.moustache;
+        let beard = x.faceAttributes.facialHair.beard;
+        let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View style={{backgroundColor: 'white'}}>
+          <View style={{backgroundColor: 'white',marginBottom:10}}>
+            <View>
+            <Text style={styles.titleText}>Face #{key}</Text>
+            </View>
+            
+            <View>
+            <Text style={styles.subTitleText}>Emotions</Text>
             <Text>Anger:{emotions['anger']}</Text>
             <Text>Contempt:{emotions['contempt']}</Text>
             <Text>Disgust:{emotions['disgust']}</Text>
@@ -155,10 +173,33 @@ export class Detector extends React.Component {
             <Text>Neutral:{emotions['neutral']}</Text>
             <Text>Sadness:{emotions['sadness']}</Text>
             <Text>Surprise:{emotions['surprise']}</Text>
+            </View>
+            <View>
+            <Text style={styles.subTitleText}>Misc</Text>
+            <Text>Gender:{gender}</Text>
+            <Text>Age:{age}</Text>
+            <Text>Smile:{smile}</Text>          
+            <Text>Glasses:{glasses}</Text>
+            <Text>Hair Color:{hairColor} - {hairColorConfidence}</Text>
+            <Text>Bald:{bald}</Text>
+            <Text>Accessories:{accessories!=='No Accessories'?_.map(accessories,(acc,index)=>{return accessories[acc]}):accessories}</Text>
+            </View>
+            <View>
+            <Text style={styles.subTitleText}>Facial Hair</Text>
+            <Text>Moustache:{moustache}</Text>
+            <Text>Beard:{beard}</Text>
+            <Text>Sideburns:{sideburns}</Text> 
+            </View>
           </View>
         );
       });
       return <View>{views}</View>;
+    }else{
+      return(
+        <View style={{backgroundColor: 'white',marginBottom:10}}>
+          <Text style={styles.subTitleText}>No valid image has been selected yet!</Text>
+        </View>
+      )
     }
   };
 
@@ -363,6 +404,16 @@ const styles = StyleSheet.create({
   button_text: {
     color: '#FFF',
     fontSize: 20,
+  },
+  titleText: {
+    fontSize: 24,
+    fontWeight: '900',
+    marginBottom:10
+  },
+  subTitleText: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom:4
   },
 });
 

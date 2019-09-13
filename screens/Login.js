@@ -63,6 +63,16 @@ export default class Register extends Component {
     }
   };
 
+  devButtonPressed=()=>{
+    this.setState({
+      email: 'tchanias@gmail.com',
+      password: '123456',
+      errorMessage: '',
+    },()=>{
+      this.confirmLogin();
+    });
+  }
+
   render() {
     return (
       <View style={styles.registrationContainer}>
@@ -95,6 +105,7 @@ export default class Register extends Component {
         </View>
         <View style={(styles.row, styles.buttonRow)}>
           <Button title={'Confirm'} onPress={() => this.confirmLogin()} />
+          <Button title={'Dev Login'} onPress={() => this.devButtonPressed()} />
           <Text style={styles.errorText}>{this.state.errorMessage}</Text>
         </View>
         <View style={styles.redirectToLoginView}>

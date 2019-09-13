@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "629406086382",
+    "firebase_url": "https://emotiondetector-fa95c.firebaseio.com",
+    "project_id": "emotiondetector-fa95c",
+    "storage_bucket": "emotiondetector-fa95c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629406086382:android:13c3c6a65bcbec53",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
