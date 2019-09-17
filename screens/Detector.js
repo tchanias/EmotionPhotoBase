@@ -73,7 +73,7 @@ export class Detector extends React.Component {
   }
 
   componentWillUnmount() {
-    this.setModalVisible(false)
+    this.setModalVisible(false);
     this.detectorListener.remove();
   }
 
@@ -125,6 +125,60 @@ export class Detector extends React.Component {
       });
   };
 
+  addToLibrary = () => {
+    if (this.state.face_data) {
+      let photo = this.state.photo;
+      let userId = firebaseAuth.currentUser.uid;
+      let faces = [];
+      let views = _.map(this.state.face_data, (x, key) => {
+        let faceObject = {
+          emotions: x.faceAttributes.emotion,
+          gender: x.faceAttributes.gender,
+          smile: x.faceAttributes.smile,
+          age: x.faceAttributes.age,
+          glasses: x.faceAttributes.glasses,
+          bald: x.faceAttributes.hair.bald,
+          hairColor: x.faceAttributes.hair
+            ? x.faceAttributes.hair[0]
+              ? x.faceAttributes.hair[0].hairColor
+                ? x.faceAttributes.hair[0].hairColor
+                : 'No hair'
+              : 'No hair'
+            : 'No hair',
+          hairColorConfidence: x.faceAttributes.hair
+            ? x.faceAttributes.hair[0]
+              ? x.faceAttributes.hair[0].confidence
+                ? x.faceAttributes.hair[0].confidence
+                : ''
+              : ''
+            : '',
+          accessories: x.faceAttributes.accessories
+            ? x.faceAttributes.accessories.length
+              ? x.faceAttributes.accessories.length >= 1
+                ? x.faceAttributes.accessories
+                : 'No Accessories'
+              : 'No Accessories'
+            : 'No Accessories',
+          moustache: x.faceAttributes.facialHair.moustache,
+          beard: x.faceAttributes.facialHair.beard,
+          sideburns: x.faceAttributes.facialHair.sideburns,
+        };
+
+        // let faceObject ={emotions:emotions,gender:gender,smile:smile,age:age,glasses:glasses,bald:bald,hairColor:hairColor,hairColorConfidence:hairColorConfidence
+        // ,accessories:accessories,moustache:moustache,beard:beard,sideburns:sideburns,faceObject:faceObject}
+        faces.push(faceObject);
+      });
+      console.log('faces', faces);
+      // firebase.ref('/library').push({
+      //   userId: userId,
+      //   photo: photo,
+      //   faces: faces,
+      // });
+    } else {
+      Alert.alert('Cannot detect faces', 'Please try again.');
+    }
+  };
+
   setModalVisible = visible => {
     this.setState({modalVisible: visible});
   };
@@ -143,63 +197,91 @@ export class Detector extends React.Component {
 
   mapJsonData = () => {
     if (this.state.face_data) {
-      let views = _.map(this.state.face_data, (x,key) => {
+      let views = _.map(this.state.face_data, (x, key) => {
         let emotions = x.faceAttributes.emotion;
         let gender = x.faceAttributes.gender;
         let smile = x.faceAttributes.smile;
         let age = x.faceAttributes.age;
         let glasses = x.faceAttributes.glasses;
         let bald = x.faceAttributes.hair.bald;
-        let hairColor= x.faceAttributes.hair?x.faceAttributes.hair[0]?x.faceAttributes.hair[0].hairColor?x.faceAttributes.hair[0].hairColor:'No hair':'No hair':'No hair';
-        let hairColorConfidence= x.faceAttributes.hair?x.faceAttributes.hair[0]?x.faceAttributes.hair[0].confidence?x.faceAttributes.hair[0].confidence:'':'':'';
-        let accessories= x.faceAttributes.accessories?x.faceAttributes.accessories.length?x.faceAttributes.accessories.length>=1?x.faceAttributes.accessories:'No Accessories'
-        :'No Accessories':'No Accessories';
+        let hairColor = x.faceAttributes.hair
+          ? x.faceAttributes.hair[0]
+            ? x.faceAttributes.hair[0].hairColor
+              ? x.faceAttributes.hair[0].hairColor
+              : 'No hair'
+            : 'No hair'
+          : 'No hair';
+        let hairColorConfidence = x.faceAttributes.hair
+          ? x.faceAttributes.hair[0]
+            ? x.faceAttributes.hair[0].confidence
+              ? x.faceAttributes.hair[0].confidence
+              : ''
+            : ''
+          : '';
+        let accessories = x.faceAttributes.accessories
+          ? x.faceAttributes.accessories.length
+            ? x.faceAttributes.accessories.length >= 1
+              ? x.faceAttributes.accessories
+              : 'No Accessories'
+            : 'No Accessories'
+          : 'No Accessories';
         let moustache = x.faceAttributes.facialHair.moustache;
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View style={{backgroundColor: 'white',marginBottom:10}}>
+          <View style={{backgroundColor: 'white', marginBottom: 10}}>
             <View>
-            <Text style={styles.titleText}>Face #{key}</Text>
+              <Text style={styles.titleText}>Face #{key}</Text>
             </View>
-            
+
             <View>
-            <Text style={styles.subTitleText}>Emotions</Text>
-            <Text>Anger:{emotions['anger']}</Text>
-            <Text>Contempt:{emotions['contempt']}</Text>
-            <Text>Disgust:{emotions['disgust']}</Text>
-            <Text>Fear:{emotions['fear']}</Text>
-            <Text>Happiness:{emotions['happiness']}</Text>
-            <Text>Neutral:{emotions['neutral']}</Text>
-            <Text>Sadness:{emotions['sadness']}</Text>
-            <Text>Surprise:{emotions['surprise']}</Text>
-            </View>
-            <View>
-            <Text style={styles.subTitleText}>Misc</Text>
-            <Text>Gender:{gender}</Text>
-            <Text>Age:{age}</Text>
-            <Text>Smile:{smile}</Text>          
-            <Text>Glasses:{glasses}</Text>
-            <Text>Hair Color:{hairColor} - {hairColorConfidence}</Text>
-            <Text>Bald:{bald}</Text>
-            <Text>Accessories:{accessories!=='No Accessories'?_.map(accessories,(acc,index)=>{return accessories[acc]}):accessories}</Text>
+              <Text style={styles.subTitleText}>Emotions</Text>
+              <Text>Anger:{emotions['anger']}</Text>
+              <Text>Contempt:{emotions['contempt']}</Text>
+              <Text>Disgust:{emotions['disgust']}</Text>
+              <Text>Fear:{emotions['fear']}</Text>
+              <Text>Happiness:{emotions['happiness']}</Text>
+              <Text>Neutral:{emotions['neutral']}</Text>
+              <Text>Sadness:{emotions['sadness']}</Text>
+              <Text>Surprise:{emotions['surprise']}</Text>
             </View>
             <View>
-            <Text style={styles.subTitleText}>Facial Hair</Text>
-            <Text>Moustache:{moustache}</Text>
-            <Text>Beard:{beard}</Text>
-            <Text>Sideburns:{sideburns}</Text> 
+              <Text style={styles.subTitleText}>Misc</Text>
+              <Text>Gender:{gender}</Text>
+              <Text>Age:{age}</Text>
+              <Text>Smile:{smile}</Text>
+              <Text>Glasses:{glasses}</Text>
+              <Text>
+                Hair Color:{hairColor} - {hairColorConfidence}
+              </Text>
+              <Text>Bald:{bald}</Text>
+              <Text>
+                Accessories:
+                {accessories !== 'No Accessories'
+                  ? _.map(accessories, (acc, index) => {
+                      return accessories[acc];
+                    })
+                  : accessories}
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.subTitleText}>Facial Hair</Text>
+              <Text>Moustache:{moustache}</Text>
+              <Text>Beard:{beard}</Text>
+              <Text>Sideburns:{sideburns}</Text>
             </View>
           </View>
         );
       });
       return <View>{views}</View>;
-    }else{
-      return(
-        <View style={{backgroundColor: 'white',marginBottom:10}}>
-          <Text style={styles.subTitleText}>No valid image has been selected yet!</Text>
+    } else {
+      return (
+        <View style={{backgroundColor: 'white', marginBottom: 10}}>
+          <Text style={styles.subTitleText}>
+            No valid image has been selected yet!
+          </Text>
         </View>
-      )
+      );
     }
   };
 
@@ -251,7 +333,8 @@ export class Detector extends React.Component {
           />
           <Button
             text="View Data"
-            onpress={() => this.setModalVisible(true)}
+            // onpress={() => this.setModalVisible(true)}
+            onpress={() => this.addToLibrary()}
             button_styles={styles.button}
             button_text_styles={styles.button_text}
           />
@@ -408,12 +491,12 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 24,
     fontWeight: '900',
-    marginBottom:10
+    marginBottom: 10,
   },
   subTitleText: {
     fontSize: 17,
     fontWeight: '700',
-    marginBottom:4
+    marginBottom: 4,
   },
 });
 

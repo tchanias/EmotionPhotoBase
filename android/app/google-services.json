@@ -8,6 +8,35 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:629406086382:android:e5daa09193206edbe7afff",
+        "android_client_info": {
+          "package_name": "com.emotionphotobase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:629406086382:android:13c3c6a65bcbec53",
         "android_client_info": {
           "package_name": "com.example.myapplication"
