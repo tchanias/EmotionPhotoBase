@@ -24,7 +24,7 @@ import Button from '../Components/UI/Button';
 import RNFetchBlob from 'rn-fetch-blob';
 import _ from 'lodash';
 import {
-  firebase,
+  firestore,
   firebaseAuth,
   LogOut,
   isUserSignedIn,
@@ -169,11 +169,11 @@ export class Detector extends React.Component {
         faces.push(faceObject);
       });
       console.log('faces', faces);
-      // firebase.ref('/library').push({
-      //   userId: userId,
-      //   photo: photo,
-      //   faces: faces,
-      // });
+      firestore.doc(`/library/${userId}/${photo}`).push({
+        userId: userId,
+        photo: photo,
+        faces: faces,
+      });
     } else {
       Alert.alert('Cannot detect faces', 'Please try again.');
     }

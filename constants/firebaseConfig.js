@@ -8,7 +8,7 @@ let config = {
   messagingSenderId: 'XXXXXXX',
 };
 export let app = Firebase.initializeApp(config);
-export const firebase = app.database();
+export const firestore = app.firestore();
 export const firebaseAuth = app.auth();
 
 export const LogOut = () => {
