@@ -1,4 +1,5 @@
-import Firebase from 'firebase';
+import Firebase from 'firebase/firebase';
+import '@firebase/firestore';
 let config = {
   apiKey: 'AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ',
   authDomain: 'emotiondetector-fa95c.firebaseapp.com',

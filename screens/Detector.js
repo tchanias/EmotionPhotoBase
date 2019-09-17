@@ -229,7 +229,7 @@ export class Detector extends React.Component {
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View style={{backgroundColor: 'white', marginBottom: 10}}>
+          <View style={{backgroundColor: 'white', marginBottom: 10}} key={key}>
             <View>
               <Text style={styles.titleText}>Face #{key}</Text>
             </View>
