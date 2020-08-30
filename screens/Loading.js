@@ -31,7 +31,6 @@ export default class Loading extends React.Component {
     } catch (error) {
       Alert.alert('Error Occured!', error);
     }
-
     // if (isUserSignedIn()) {
     //   this.props.navigation.navigate('Detector');
     // } else {

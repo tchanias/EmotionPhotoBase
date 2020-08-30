@@ -129,10 +129,14 @@ android {
 
     defaultConfig {
         applicationId "com.emotionphotobase"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
+    }
+     dexOptions {
+        jumboMode true 
     }
     splits {
         abi {
@@ -188,12 +192,16 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-firebase')
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-image-picker')
-    implementation 'com.google.firebase:firebase-analytics:17.2.0'
+    implementation 'com.android.support:multidex:1.0.3'
+    // implementation 'com.google.firebase:firebase-analytics:17.2.0'
+    // implementation 'com.google.firebase:firebase-auth:17.0.0'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
-
+implementation "com.google.android.gms:play-services-base:16.1.0"
+implementation "com.google.firebase:firebase-core:16.0.9"
     implementation ("com.google.android.gms:play-services-gcm:17.0.0") {
 force = true;
 }

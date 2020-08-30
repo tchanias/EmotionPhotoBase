@@ -1,5 +1,6 @@
-import Firebase from 'firebase/firebase';
-import '@firebase/firestore';
+import firebase from '@react-native-firebase/app';
+import auth from '@react-native-firebase/auth';
+// import '@firebase/firestore';
 let config = {
   apiKey: 'AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ',
   authDomain: 'emotiondetector-fa95c.firebaseapp.com',
@@ -8,12 +9,12 @@ let config = {
   storageBucket: 'emotiondetector-fa95c.appspot.com',
   messagingSenderId: 'XXXXXXX',
 };
-export let app = Firebase.initializeApp(config);
-export const firestore = app.firestore();
-export const firebaseAuth = app.auth();
+// export let app = firebase.initializeApp(config);
+// export const firestore = app.firestore();
+export const firebaseAuth = auth();
 
 export const LogOut = () => {
-  return Firebase.auth().signOut();
+  return firebase.auth().signOut();
 };
 
 export const LogIn = (email, password) => {

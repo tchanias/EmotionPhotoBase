@@ -24,12 +24,14 @@ import Button from '../Components/UI/Button';
 import RNFetchBlob from 'rn-fetch-blob';
 import _ from 'lodash';
 import {
-  firestore,
   firebaseAuth,
   LogOut,
   isUserSignedIn,
   app,
 } from '../constants/firebaseConfig';
+import firestore from '@react-native-firebase/firestore';
+import Spinner from 'react-native-loading-spinner-overlay';
+import {sharedStyles} from '../sharedStyles';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -48,15 +50,12 @@ export class Detector extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      photo_style: {
-        position: 'relative',
-        width: 480,
-        height: 480,
-      },
       has_photo: false,
       photo: null,
       face_data: null,
       modalVisible: false,
+      faces: [],
+      loading:false,
     };
   }
 
@@ -78,14 +77,19 @@ export class Detector extends React.Component {
   }
 
   static navigationOptions = ({navigation}) => {
+    let userMail = firebaseAuth.currentUser
+      ? firebaseAuth.currentUser.email
+      : '';
+    let userName = userMail
+      ? userMail.substr(0, userMail.indexOf('@'))
+      : '';
     return {
       headerLeft: null,
       // headerTitle: 'Detect Face Emotions',
-      headerTitle: firebaseAuth.currentUser
-        ? firebaseAuth.currentUser.email
-        : '',
+      headerTitle: userName,
       headerRight: (
         <TouchableOpacity
+          styles
           onPress={() => {
             let user = firebaseAuth.currentUser;
             if (user) {
@@ -94,9 +98,6 @@ export class Detector extends React.Component {
               navigation.state.params.LogIn();
             }
           }}>
-          {/* <Text>
-            {firebaseAuth.currentUser ? firebaseAuth.currentUser.email : ''}
-          </Text> */}
           <Text>{firebaseAuth.currentUser ? 'Log Out' : 'Log In'}</Text>
         </TouchableOpacity>
       ),
@@ -123,6 +124,64 @@ export class Detector extends React.Component {
       .catch(function(error) {
         Alert.alert('Error during log out!', error.message);
       });
+  };
+
+  saveToFirebase = () => {
+    if (this.state.face_data) {
+      let photo = this.state.photo;
+      let filename = photo.uri ? photo.uri.substring(photo.uri.lastIndexOf("/") + 1, photo.uri.lastIndexOf(".")) : '';
+      photo = {...photo, filename};
+      let userId = firebaseAuth.currentUser.uid;
+      let faces = [];
+      let views = _.map(this.state.face_data, (x, key) => {
+        let faceObject = {
+          emotions: x.faceAttributes.emotion,
+          gender: x.faceAttributes.gender,
+          smile: x.faceAttributes.smile,
+          age: x.faceAttributes.age,
+          glasses: x.faceAttributes.glasses,
+          bald: x.faceAttributes.hair.bald,
+          hairColor: x.faceAttributes.hair
+            ? x.faceAttributes.hair[0]
+              ? x.faceAttributes.hair[0].hairColor
+                ? x.faceAttributes.hair[0].hairColor
+                : 'No hair'
+              : 'No hair'
+            : 'No hair',
+          hairColorConfidence: x.faceAttributes.hair
+            ? x.faceAttributes.hair[0]
+              ? x.faceAttributes.hair[0].confidence
+                ? x.faceAttributes.hair[0].confidence
+                : ''
+              : ''
+            : '',
+          accessories: x.faceAttributes.accessories
+            ? x.faceAttributes.accessories.length
+              ? x.faceAttributes.accessories.length >= 1
+                ? x.faceAttributes.accessories
+                : 'No Accessories'
+              : 'No Accessories'
+            : 'No Accessories',
+          moustache: x.faceAttributes.facialHair.moustache,
+          beard: x.faceAttributes.facialHair.beard,
+          sideburns: x.faceAttributes.facialHair.sideburns,
+        };
+
+        // let faceObject ={emotions:emotions,gender:gender,smile:smile,age:age,glasses:glasses,bald:bald,hairColor:hairColor,hairColorConfidence:hairColorConfidence
+        // ,accessories:accessories,moustache:moustache,beard:beard,sideburns:sideburns,faceObject:faceObject}
+        faces.push(faceObject);
+      });
+      // this.setState({faces: faces}, () => {
+
+      // });
+      this.setModalVisible(true);
+      firestore().collection('library').doc(userId).collection('photos').doc(photo.filename).set({
+        photo: photo,
+        faces: faces,
+      });
+    } else {
+      Alert.alert('Cannot detect faces', 'Please try again.');
+    }
   };
 
   addToLibrary = () => {
@@ -168,12 +227,13 @@ export class Detector extends React.Component {
         // ,accessories:accessories,moustache:moustache,beard:beard,sideburns:sideburns,faceObject:faceObject}
         faces.push(faceObject);
       });
-      console.log('faces', faces);
-      firestore.doc(`/library/${userId}/${photo}`).push({
-        userId: userId,
-        photo: photo,
-        faces: faces,
-      });
+      this.setModalVisible(true);
+      // console.log('faces', faces);
+      // firestore.doc(`/library/${userId}/${photo}`).push({
+      //   userId: userId,
+      //   photo: photo,
+      //   faces: faces,
+      // });
     } else {
       Alert.alert('Cannot detect faces', 'Please try again.');
     }
@@ -229,13 +289,13 @@ export class Detector extends React.Component {
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View style={{backgroundColor: 'white', marginBottom: 10}} key={key}>
+          <View style={{backgroundColor: sharedStyles.backgroundColor, marginBottom: 10}} key={key}>
             <View>
-              <Text style={styles.titleText}>Face #{key}</Text>
+              <Text style={sharedStyles.titleText}>Face #{key}</Text>
             </View>
 
             <View>
-              <Text style={styles.subTitleText}>Emotions</Text>
+              <Text style={sharedStyles.subTitleText}>Emotions</Text>
               <Text>Anger:{emotions['anger']}</Text>
               <Text>Contempt:{emotions['contempt']}</Text>
               <Text>Disgust:{emotions['disgust']}</Text>
@@ -246,7 +306,7 @@ export class Detector extends React.Component {
               <Text>Surprise:{emotions['surprise']}</Text>
             </View>
             <View>
-              <Text style={styles.subTitleText}>Misc</Text>
+              <Text style={sharedStyles.subTitleText}>Misc</Text>
               <Text>Gender:{gender}</Text>
               <Text>Age:{age}</Text>
               <Text>Smile:{smile}</Text>
@@ -265,7 +325,7 @@ export class Detector extends React.Component {
               </Text>
             </View>
             <View>
-              <Text style={styles.subTitleText}>Facial Hair</Text>
+              <Text style={sharedStyles.subTitleText}>Facial Hair</Text>
               <Text>Moustache:{moustache}</Text>
               <Text>Beard:{beard}</Text>
               <Text>Sideburns:{sideburns}</Text>
@@ -276,8 +336,8 @@ export class Detector extends React.Component {
       return <View>{views}</View>;
     } else {
       return (
-        <View style={{backgroundColor: 'white', marginBottom: 10}}>
-          <Text style={styles.subTitleText}>
+        <View style={{backgroundColor: sharedStyles.backgroundColor, marginBottom: 10}}>
+          <Text style={sharedStyles.subTitleText}>
             No valid image has been selected yet!
           </Text>
         </View>
@@ -295,7 +355,12 @@ export class Detector extends React.Component {
     //   : {};
     // let modalObject = this.state.face_data ? this.state.face_data : {};
     return (
-      <View style={styles.container}>
+      <View style={sharedStyles.detectorContainer}>
+         <Spinner
+            visible={this.state.loading}
+            textContent={'Loading image data...'}
+            textStyle={{color:sharedStyles.textColor}}
+          />
         <Modal
           animationType="slide"
           presentationStyle={'pageSheet'}
@@ -307,7 +372,6 @@ export class Detector extends React.Component {
           <View style={{marginTop: 22}}>
             <View>
               {this.mapJsonData()}
-
               <RNButton
                 title="Hide Modal"
                 onPress={() => {
@@ -319,27 +383,56 @@ export class Detector extends React.Component {
         </Modal>
 
         <ImageBackground
-          style={this.state.photo_style}
+          style={sharedStyles.detectorPhotoStyle}
           source={this.state.photo}
           resizeMode={'contain'}>
           {this._renderFaceBoxes.call(this)}
         </ImageBackground>
-        <View style={styles.ButtonContainer}>
-          <Button
-            text="Pick Photo"
-            onpress={this._pickImage.bind(this)}
-            button_styles={styles.button}
-            button_text_styles={styles.button_text}
-          />
-          <Button
-            text="View Data"
+        <View 
+        style={sharedStyles.buttonWrapper}
+        >
+         {!this.state.loading? 
+         <TouchableOpacity
+            // text={this.state.face_data?'Change Photo':"Pick Photo"}
+            onPress={this._pickImage.bind(this)}
+            style={sharedStyles.buttonWrapper}
+            // button_text_styles={sharedStyles.button_text}
+          >
+            <Text
+            style={sharedStyles.button_text}
+            >
+            {this.state.face_data?'Change Photo':"Pick Photo"}
+            </Text>
+            </TouchableOpacity>:null}
+        {this.state.face_data ?
+          <TouchableOpacity
+            // text="View Data"
             // onpress={() => this.setModalVisible(true)}
-            onpress={() => this.addToLibrary()}
-            button_styles={styles.button}
-            button_text_styles={styles.button_text}
-          />
-          {/* {this._renderDetectFacesButton.call(this)} */}
+            onPress={() => this.addToLibrary()}
+            style={sharedStyles.button}
+            
+          >
+            <Text
+            style={sharedStyles.button_text}
+            >
+            View Data
+            </Text>
+          </TouchableOpacity>
+          : null}
+
         </View>
+        {this.state.face_data ?
+          <View 
+          // style={sharedStyles.buttonWrapper}
+          >
+            <Button
+                text="Save to database"
+                // onpress={() => this.setModalVisible(true)}
+                onpress={() => this.saveToFirebase()}
+                button_styles={sharedStyles.buttonWrapper}
+                button_text_styles={sharedStyles.button_text}
+              />
+          </View>: null}
       </View>
     );
   }
@@ -388,7 +481,7 @@ export class Detector extends React.Component {
   }
 
   _detectFaces() {
-    console.log(this.state.photo_data, 'detect faces: data');
+    this.setState({loading:true},()=>{
     RNFetchBlob.fetch(
       'POST',
       apiUrl,
@@ -400,28 +493,36 @@ export class Detector extends React.Component {
       this.state.photo_data,
     )
       .then(res => {
-        console.log(res, 'res');
         return res.json();
       })
       .then(json => {
-        console.log(json, 'json');
         if (json.length) {
           this.setState({
             face_data: json,
+            loading:false
           });
         } else {
-          alert("Sorry, I can't see any faces in there.");
+ 
+            this.setState({
+              loading:false
+            },()=>{
+              alert("Sorry, I can't see any faces in there.");
+          })
         }
 
         return json;
       })
       .catch(function(error) {
-        console.log(error);
-        alert(
-          'Sorry, the request failed. Please try again.' +
-            JSON.stringify(error),
-        );
+        this.setState({loading:false},()=>{
+          console.log(error);
+          alert(
+            'Sorry, the request failed. Please try again.' +
+              JSON.stringify(error),
+          );
+        });
+       
       });
+    });
   }
 
   _renderFaceBoxes() {
@@ -467,11 +568,17 @@ export class Detector extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  headerStyles:{
+    borderRadius:30,
+  },
+
   container: {
     flex: 1,
     alignItems: 'center',
     alignSelf: 'center',
     backgroundColor: '#ccc',
+    height:'100%',
+    width:'100%',
   },
   ButtonContainer: {
     display: 'flex',
@@ -479,25 +586,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-  button: {
-    margin: 10,
-    padding: 5,
-    backgroundColor: '#529ecc',
-  },
-  button_text: {
-    color: '#FFF',
-    fontSize: 20,
-  },
-  titleText: {
-    fontSize: 24,
-    fontWeight: '900',
-    marginBottom: 10,
-  },
-  subTitleText: {
-    fontSize: 17,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
+
 });
 
 export default Detector;
