@@ -1,6 +1,7 @@
 import {createAppContainer, createSwitchNavigator} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import Detector from '../screens/Detector';
+import Library from '../screens/Library';
 import Register from '../screens/Register';
 import Login from '../screens/Login';
 import Home from '../screens/Home';
@@ -9,6 +10,7 @@ import Loading from '../screens/Loading';
 const AppStack = createStackNavigator(
   {
     Detector,
+    Library,
   },
   {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
 );

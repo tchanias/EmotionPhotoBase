@@ -9,9 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   Button as RNButton,
-  Modal,
-  FlatList,
-  TouchableHighlight,
+  ScrollView,
 } from 'react-native';
 import {
   apiUrl,
@@ -32,6 +30,7 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {sharedStyles} from '../sharedStyles';
+import {Overlay, Divider} from 'react-native-elements';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -42,8 +41,14 @@ const image_picker_options = {
   maxWidth: 480,
   maxHeight: 480,
   quality: 1,
-  noData: false,
   path: 'images',
+  noData: true,
+  storageOptions: {
+    skipBackup: true,
+    privateDirectory: true,
+    cameraRoll: false,
+    path: 'EmotionPhotoBase',
+  },
 };
 
 export class Detector extends React.Component {
@@ -55,7 +60,7 @@ export class Detector extends React.Component {
       face_data: null,
       modalVisible: false,
       faces: [],
-      loading:false,
+      loading: false,
     };
   }
 
@@ -80,16 +85,22 @@ export class Detector extends React.Component {
     let userMail = firebaseAuth.currentUser
       ? firebaseAuth.currentUser.email
       : '';
-    let userName = userMail
-      ? userMail.substr(0, userMail.indexOf('@'))
-      : '';
+    let userName = userMail ? userMail.substr(0, userMail.indexOf('@')) : '';
     return {
-      headerLeft: null,
+      headerLeft: (
+        <TouchableOpacity
+          style={styles.headerStyles}
+          onPress={() => {
+            navigation.navigate('Library');
+          }}>
+          <Text>{'Library'}</Text>
+        </TouchableOpacity>
+      ),
       // headerTitle: 'Detect Face Emotions',
       headerTitle: userName,
       headerRight: (
         <TouchableOpacity
-          styles
+          style={styles.headerStyles}
           onPress={() => {
             let user = firebaseAuth.currentUser;
             if (user) {
@@ -129,7 +140,12 @@ export class Detector extends React.Component {
   saveToFirebase = () => {
     if (this.state.face_data) {
       let photo = this.state.photo;
-      let filename = photo.uri ? photo.uri.substring(photo.uri.lastIndexOf("/") + 1, photo.uri.lastIndexOf(".")) : '';
+      let filename = photo.uri
+        ? photo.uri.substring(
+            photo.uri.lastIndexOf('/') + 1,
+            photo.uri.lastIndexOf('.'),
+          )
+        : '';
       photo = {...photo, filename};
       let userId = firebaseAuth.currentUser.uid;
       let faces = [];
@@ -174,11 +190,27 @@ export class Detector extends React.Component {
       // this.setState({faces: faces}, () => {
 
       // });
-      this.setModalVisible(true);
-      firestore().collection('library').doc(userId).collection('photos').doc(photo.filename).set({
-        photo: photo,
-        faces: faces,
-      });
+      firestore()
+        .collection('library')
+        .doc(userId)
+        .collection('photos')
+        .doc(photo.filename)
+        .set({
+          photo: photo,
+          faces: faces,
+        });
+      // RNFetchBlob.config({
+      //   // add this option that makes response data to be stored as a file,
+      //   // this is much more performant.
+      //   fileCache : true,
+      // }).
+      const dirs = RNFetchBlob.fs.dirs;
+      console.log(dirs.DocumentDir);
+      console.log(dirs.CacheDir);
+      console.log(dirs.DCIMDir);
+      console.log(dirs.DownloadDir);
+      console.log('photo: ', photo);
+      Alert.alert('', 'image Saved successfully!!!');
     } else {
       Alert.alert('Cannot detect faces', 'Please try again.');
     }
@@ -228,12 +260,6 @@ export class Detector extends React.Component {
         faces.push(faceObject);
       });
       this.setModalVisible(true);
-      // console.log('faces', faces);
-      // firestore.doc(`/library/${userId}/${photo}`).push({
-      //   userId: userId,
-      //   photo: photo,
-      //   faces: faces,
-      // });
     } else {
       Alert.alert('Cannot detect faces', 'Please try again.');
     }
@@ -289,11 +315,14 @@ export class Detector extends React.Component {
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View style={{backgroundColor: sharedStyles.backgroundColor, marginBottom: 10}} key={key}>
+          <View
+            style={{
+              marginBottom: 10,
+            }}
+            key={key}>
             <View>
               <Text style={sharedStyles.titleText}>Face #{key}</Text>
             </View>
-
             <View>
               <Text style={sharedStyles.subTitleText}>Emotions</Text>
               <Text>Anger:{emotions['anger']}</Text>
@@ -330,13 +359,18 @@ export class Detector extends React.Component {
               <Text>Beard:{beard}</Text>
               <Text>Sideburns:{sideburns}</Text>
             </View>
+            <Divider style={{backgroundColor: 'blue'}} />
           </View>
         );
       });
       return <View>{views}</View>;
     } else {
       return (
-        <View style={{backgroundColor: sharedStyles.backgroundColor, marginBottom: 10}}>
+        <View
+          style={{
+            backgroundColor: sharedStyles.backgroundColor,
+            marginBottom: 10,
+          }}>
           <Text style={sharedStyles.subTitleText}>
             No valid image has been selected yet!
           </Text>
@@ -355,13 +389,36 @@ export class Detector extends React.Component {
     //   : {};
     // let modalObject = this.state.face_data ? this.state.face_data : {};
     return (
-      <View style={sharedStyles.detectorContainer}>
-         <Spinner
-            visible={this.state.loading}
-            textContent={'Loading image data...'}
-            textStyle={{color:sharedStyles.textColor}}
-          />
-        <Modal
+      <View
+      // style={sharedStyles.detectorContainer}
+      >
+        <Spinner
+          visible={this.state.loading}
+          textContent={'Loading image data...'}
+          textStyle={{color: sharedStyles.textColor}}
+        />
+
+        <Overlay
+          isVisible={this.state.modalVisible}
+          fullScreen
+          overlayStyle={{overflowY: 'auto'}}
+          onBackdropPress={() => this.setModalVisible(false)}>
+          <View style={{marginTop: 22}}>
+            <ScrollView>
+              <View>
+                {this.mapJsonData()}
+                <RNButton
+                  title="Hide Modal"
+                  onPress={() => {
+                    this.setModalVisible(false);
+                  }}
+                />
+              </View>
+            </ScrollView>
+          </View>
+        </Overlay>
+
+        {/* <Modal
           animationType="slide"
           presentationStyle={'pageSheet'}
           transparent={false}
@@ -380,7 +437,7 @@ export class Detector extends React.Component {
               />
             </View>
           </View>
-        </Modal>
+        </Modal> */}
 
         <ImageBackground
           style={sharedStyles.detectorPhotoStyle}
@@ -388,51 +445,38 @@ export class Detector extends React.Component {
           resizeMode={'contain'}>
           {this._renderFaceBoxes.call(this)}
         </ImageBackground>
-        <View 
-        style={sharedStyles.buttonWrapper}
-        >
-         {!this.state.loading? 
-         <TouchableOpacity
-            // text={this.state.face_data?'Change Photo':"Pick Photo"}
-            onPress={this._pickImage.bind(this)}
-            style={sharedStyles.buttonWrapper}
-            // button_text_styles={sharedStyles.button_text}
-          >
-            <Text
-            style={sharedStyles.button_text}
+        <View style={sharedStyles.buttonWrapper}>
+          {!this.state.loading && (
+            <TouchableOpacity
+              // text={this.state.face_data?'Change Photo':"Pick Photo"}
+              onPress={this._pickImage.bind(this)}
+              style={sharedStyles.button}
+              // button_text_styles={sharedStyles.button_text}
             >
-            {this.state.face_data?'Change Photo':"Pick Photo"}
-            </Text>
-            </TouchableOpacity>:null}
-        {this.state.face_data ?
-          <TouchableOpacity
-            // text="View Data"
-            // onpress={() => this.setModalVisible(true)}
-            onPress={() => this.addToLibrary()}
-            style={sharedStyles.button}
-            
-          >
-            <Text
-            style={sharedStyles.button_text}
-            >
-            View Data
-            </Text>
-          </TouchableOpacity>
-          : null}
-
+              <Text style={sharedStyles.button_text}>
+                {this.state.face_data ? 'Change Photo' : 'Pick Photo'}
+              </Text>
+            </TouchableOpacity>
+          )}
+          {this.state.face_data && (
+            <TouchableOpacity
+              // text="View Data"
+              // onpress={() => this.setModalVisible(true)}
+              onPress={() => this.addToLibrary()}
+              style={sharedStyles.button}>
+              <Text style={sharedStyles.button_text}>View Data</Text>
+            </TouchableOpacity>
+          )}
+          {this.state.face_data && (
+            <TouchableOpacity
+              // text="View Data"
+              // onpress={() => this.setModalVisible(true)}
+              onPress={() => this.saveToFirebase()}
+              style={sharedStyles.button}>
+              <Text style={sharedStyles.button_text}>Save</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        {this.state.face_data ?
-          <View 
-          // style={sharedStyles.buttonWrapper}
-          >
-            <Button
-                text="Save to database"
-                // onpress={() => this.setModalVisible(true)}
-                onpress={() => this.saveToFirebase()}
-                button_styles={sharedStyles.buttonWrapper}
-                button_text_styles={sharedStyles.button_text}
-              />
-          </View>: null}
       </View>
     );
   }
@@ -446,6 +490,7 @@ export class Detector extends React.Component {
       if (response.error) {
         alert('Error getting the image. Please try again.');
       } else {
+        console.log('imagepicker response: ', response);
         let source = {uri: response.uri};
 
         this.setState(
@@ -481,47 +526,48 @@ export class Detector extends React.Component {
   }
 
   _detectFaces() {
-    this.setState({loading:true},()=>{
-    RNFetchBlob.fetch(
-      'POST',
-      apiUrl,
-      {
-        Accept: 'application/json',
-        'Content-Type': 'application/octet-stream',
-        'Ocp-Apim-Subscription-Key': subKey,
-      },
-      this.state.photo_data,
-    )
-      .then(res => {
-        return res.json();
-      })
-      .then(json => {
-        if (json.length) {
-          this.setState({
-            face_data: json,
-            loading:false
-          });
-        } else {
- 
+    this.setState({loading: true}, () => {
+      RNFetchBlob.fetch(
+        'POST',
+        apiUrl,
+        {
+          Accept: 'application/json',
+          'Content-Type': 'application/octet-stream',
+          'Ocp-Apim-Subscription-Key': subKey,
+        },
+        this.state.photo_data,
+      )
+        .then(res => {
+          return res.json();
+        })
+        .then(json => {
+          if (json.length) {
             this.setState({
-              loading:false
-            },()=>{
-              alert("Sorry, I can't see any faces in there.");
-          })
-        }
+              face_data: json,
+              loading: false,
+            });
+          } else {
+            this.setState(
+              {
+                loading: false,
+              },
+              () => {
+                alert("Sorry, I can't see any faces in there.");
+              },
+            );
+          }
 
-        return json;
-      })
-      .catch(function(error) {
-        this.setState({loading:false},()=>{
-          console.log(error);
-          alert(
-            'Sorry, the request failed. Please try again.' +
-              JSON.stringify(error),
-          );
+          return json;
+        })
+        .catch(function(error) {
+          this.setState({loading: false}, () => {
+            console.log(error);
+            alert(
+              'Sorry, the request failed. Please try again.' +
+                JSON.stringify(error),
+            );
+          });
         });
-       
-      });
     });
   }
 
@@ -551,7 +597,7 @@ export class Detector extends React.Component {
 
         return (
           <View key={x.faceId} style={box}>
-            <View style={style}></View>
+            <View style={style} />
             <Text style={attr}>
               {x.faceAttributes.gender}, {x.faceAttributes.age} y/o
             </Text>
@@ -568,8 +614,8 @@ export class Detector extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  headerStyles:{
-    borderRadius:30,
+  headerStyles: {
+    borderRadius: 30,
   },
 
   container: {
@@ -577,8 +623,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     alignSelf: 'center',
     backgroundColor: '#ccc',
-    height:'100%',
-    width:'100%',
+    height: '100%',
+    width: '100%',
   },
   ButtonContainer: {
     display: 'flex',
@@ -586,7 +632,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-
 });
 
 export default Detector;
