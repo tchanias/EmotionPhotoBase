@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "629406086382-6da5e67jueq9ku4jp18l4492plcnobmq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.emotionphotobase",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "629406086382-vv1v9n06d48p4o4tni278ldca6d12dpi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.emotionphotobase",
+            "certificate_hash": "7c7928402edb7763daccc55d5c928573cb685ef1"
+          }
+        },
+        {
           "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
           "client_type": 3
         }

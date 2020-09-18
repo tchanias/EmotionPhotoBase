@@ -196,6 +196,8 @@ dependencies {
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-image-picker')
     implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0' 
+    implementation(project(":react-native-google-signin"))
     // implementation 'com.google.firebase:firebase-analytics:17.2.0'
     // implementation 'com.google.firebase:firebase-auth:17.0.0'
     implementation fileTree(dir: "libs", include: ["*.jar"])

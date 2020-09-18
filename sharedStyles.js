@@ -52,12 +52,12 @@ export const sharedStyles = {
   },
   titleText: {
     ...titleFont,
-
+    color: '#fff',
     marginBottom: 10,
   },
   subTitleText: {
     ...subTitleFont,
-
+    color: '#fff',
     marginBottom: 4,
   },
 };

@@ -1,8 +1,16 @@
 import React, {Component} from 'react';
 import {Button, View, Text, TextInput, Alert} from 'react-native';
-import {emailRegex} from '../constants/constants';
+import {emailRegex, oathClient} from '../constants/constants';
 import {firebaseAuth, CreateUser} from '../constants/firebaseConfig';
+import {
+  GoogleSignin,
+  GoogleSigninButton,
+} from '@react-native-community/google-signin';
+import auth from '@react-native-firebase/auth';
 
+GoogleSignin.configure({
+  webClientId: oathClient,
+});
 export default class Register extends Component {
   constructor(props) {
     super(props);
@@ -44,6 +52,52 @@ export default class Register extends Component {
     } else {
       this.addUser();
     }
+  };
+
+  onGoogleSignIn = async () => {
+    // Get the users ID token
+    let idToken = '';
+    const google = await GoogleSignin.signIn()
+      .then(response => {
+        console.log('google sign in response: ', response);
+        if (response.idToken) {
+          idToken = response.idToken;
+        }
+      })
+      .catch(err => {
+        console.log('Could not sign-in to google services! :', err);
+        Alert.alert(
+          'Could not sign-in to google services!',
+          JSON.stringify(err),
+        );
+      });
+    // Create a Google credential with the token
+    if (idToken) {
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+      console.log('Firebase Google credential: ', googleCredential);
+      // Sign-in the user with the credential
+      return firebaseAuth.signInWithCredential(googleCredential);
+    } else {
+      return null;
+    }
+  };
+
+  onGoogleButtonPress = () => {
+    this.onGoogleSignIn()
+      .then(response => {
+        console.log('Signed in with google: ', response);
+        if (response.user) {
+          this.props.navigation.navigate('Detector');
+          Alert.alert(
+            'Log in!',
+            `Logged in successfully as ${response.user.displayName ||
+              response.user.email} `,
+          );
+        }
+      })
+      .catch(err => {
+        console.log('firebaseAuth signInWithCredential failed :', err);
+      });
   };
 
   render() {
@@ -90,6 +144,14 @@ export default class Register extends Component {
             onPress={() => this.confirmRegistration()}
           />
           <Text style={styles.errorText}>{this.state.errorMessage}</Text>
+        </View>
+        <View style={(styles.row, styles.buttonRow)}>
+          <GoogleSigninButton
+            style={{width: 192, height: 48}}
+            size={GoogleSigninButton.Size.Wide}
+            color={GoogleSigninButton.Color.Dark}
+            onPress={() => this.onGoogleButtonPress()}
+          />
         </View>
         <View style={styles.redirectToLoginView}>
           <Text>Already have an account? </Text>
