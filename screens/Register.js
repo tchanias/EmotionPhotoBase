@@ -1,12 +1,16 @@
 import React, {Component} from 'react';
-import {Button, View, Text, TextInput, Alert} from 'react-native';
-import {emailRegex, oathClient} from '../constants/constants';
+import {View, Text, Alert} from 'react-native';
+
+import {emailRegex, oathClient, screens} from '../constants/constants';
 import {firebaseAuth, CreateUser} from '../constants/firebaseConfig';
 import {
   GoogleSignin,
   GoogleSigninButton,
 } from '@react-native-community/google-signin';
 import auth from '@react-native-firebase/auth';
+import Logo from '../Components/UI/Logo';
+import {Input, Button, Icon} from 'react-native-elements';
+import {sharedStyles, screenWidth} from '../sharedStyles';
 
 GoogleSignin.configure({
   webClientId: oathClient,
@@ -21,6 +25,29 @@ export default class Register extends Component {
       errorMessage: '',
     };
   }
+
+  static navigationOptions = ({navigation}) => {
+    return {
+      headerStyle: {
+        backgroundColor: '#009671',
+      },
+      headerLeft: (
+        <Button
+          buttonStyle={[sharedStyles.headerLeft, {backgroundColor: '#009671'}]}
+          onPress={() => navigation.navigate(screens.Login)}
+          icon={
+            <Icon
+              name="arrow-back"
+              color={'#fff'}
+              style={sharedStyles.circleButtonsIcon}
+            />
+          }
+        />
+      ),
+      headerTitle: <Logo />,
+      headerRight: null,
+    };
+  };
 
   addUser = () => {
     CreateUser(this.state.email, this.state.password)
@@ -102,81 +129,135 @@ export default class Register extends Component {
 
   render() {
     return (
-      <View style={styles.registrationContainer}>
-        <Text>Register Screen</Text>
-        {/* <Button
-          title="Detect Photo Emotions"
-          onPress={() => this.props.navigation.navigate('Detector')}
-        /> */}
-        <View style={styles.formContainer}>
-          <View style={styles.row}>
-            <Text style={styles.formLabel} autoCompleteType={'email'}>
-              Email:
-            </Text>
-            <TextInput
-              style={styles.inputField}
-              onChangeText={text => this.onChangeText(text, 'email')}
-              value={this.state.email}
-              autoCompleteType={'password'}
-            />
+      <>
+        <View style={styles.subHeader}>
+          <Text style={styles.subHeaderText}>Register</Text>
+        </View>
+        <View style={styles.registrationContainer}>
+          <View style={styles.formContainer}>
+            <View style={styles.Inputs}>
+              {/* <Text style={styles.formLabel} autoCompleteType={'email'}>
+                Email:
+              </Text>
+              <TextInput
+                style={styles.inputField}
+                onChangeText={text => this.onChangeText(text, 'email')}
+                value={this.state.email}
+                autoCompleteType={'password'}
+              /> */}
+              <Input
+                placeholder="Email"
+                style={styles.input}
+                leftIcon={<Icon name="mail" size={24} color="white" />}
+                // style={styles.inputField}
+                onChangeText={text => this.onChangeText(text, 'email')}
+                value={this.state.email}
+                autoCompleteType={'password'}
+              />
+              {/*        
+              <Text style={styles.formLabel}>Password:</Text>
+              <TextInput
+                style={styles.inputField}
+                onChangeText={text => this.onChangeText(text, 'password')}
+                value={this.state.password}
+                autoCompleteType={'password'}
+              /> */}
+              <Input
+                placeholder="Password"
+                style={styles.input}
+                leftIcon={<Icon name="lock" size={24} color="white" />}
+                secureTextEntry={true}
+                // style={styles.inputField}
+                onChangeText={text => this.onChangeText(text, 'password')}
+                value={this.state.password}
+                autoCompleteType={'password'}
+              />
+
+              {/* <Text style={styles.formLabel}>Confirm Password:</Text>
+              <TextInput
+                style={styles.inputField}
+                onChangeText={text =>
+                  this.onChangeText(text, 'confirmPassword')
+                }
+                value={this.state.confirmPassword}
+              /> */}
+              <Input
+                placeholder="Confirm Password"
+                style={styles.input}
+                leftIcon={<Icon name="lock" size={24} color="white" />}
+                secureTextEntry={true}
+                // style={styles.inputField}
+                onChangeText={text =>
+                  this.onChangeText(text, 'confirmPassword')
+                }
+                value={this.state.confirmPassword}
+                autoCompleteType={'password'}
+              />
+              <Text style={styles.errorText}>{this.state.errorMessage}</Text>
+            </View>
+
+            <View style={(styles.row, styles.buttonRow)}>
+              <Button
+                buttonStyle={styles.actionButtons}
+                onPress={() => this.confirmRegistration()}
+                icon={
+                  <Icon
+                    name="check"
+                    size={24}
+                    color="white"
+                    style={sharedStyles.circleButtonsIcon}
+                  />
+                }
+                title={'Confirm'}
+              />
+              <GoogleSigninButton
+                style={{width: 192, height: 48}}
+                size={GoogleSigninButton.Size.Wide}
+                color={GoogleSigninButton.Color.Dark}
+                onPress={() => this.onGoogleButtonPress()}
+              />
+            </View>
+            <View style={styles.redirectToLoginView}>
+              <Text style={styles.bottomText}>Already have an account? </Text>
+              <Text
+                style={styles.hyperLink}
+                onPress={() => this.props.navigation.navigate(screens.Login)}>
+                Log in here
+              </Text>
+            </View>
           </View>
-          <View style={styles.row}>
-            <Text style={styles.formLabel}>Password:</Text>
-            <TextInput
-              style={styles.inputField}
-              onChangeText={text => this.onChangeText(text, 'password')}
-              value={this.state.password}
-              autoCompleteType={'password'}
-            />
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.formLabel}>Confirm Password:</Text>
-            <TextInput
-              style={styles.inputField}
-              onChangeText={text => this.onChangeText(text, 'confirmPassword')}
-              value={this.state.confirmPassword}
-            />
-          </View>
         </View>
-        <View style={(styles.row, styles.buttonRow)}>
-          <Button
-            title={'Confirm'}
-            onPress={() => this.confirmRegistration()}
-          />
-          <Text style={styles.errorText}>{this.state.errorMessage}</Text>
-        </View>
-        <View style={(styles.row, styles.buttonRow)}>
-          <GoogleSigninButton
-            style={{width: 192, height: 48}}
-            size={GoogleSigninButton.Size.Wide}
-            color={GoogleSigninButton.Color.Dark}
-            onPress={() => this.onGoogleButtonPress()}
-          />
-        </View>
-        <View style={styles.redirectToLoginView}>
-          <Text>Already have an account? </Text>
-          <Text
-            style={styles.hyperLink}
-            onPress={() => this.props.navigation.navigate('Login')}>
-            Log in here
-          </Text>
-        </View>
-      </View>
+      </>
     );
   }
 }
 
 const styles = {
-  registrationContainer: {
-    justifyContent: 'space-around',
+  subHeader: {
+    backgroundColor: '#00B386',
+    justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 50,
+  },
+  subHeaderText: {
+    fontSize: 20,
+    color: '#fff',
+  },
+  registrationContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: screenWidth,
     height: '100%',
+    backgroundColor: '#373737',
   },
   formContainer: {
-    justifyContent: 'space-around',
-    alignItems: 'flex-start',
-    marginLeft: 10,
-    flexBasis: '50%',
+    justifyContent: 'center',
+    height: '100%',
+    alignItems: 'center',
+    // backgroundColor: 'yellow',
+
+    // marginLeft: 10,
+    flexBasis: '80%',
   },
   row: {
     flexDirection: 'row',
@@ -184,14 +265,24 @@ const styles = {
     alignItems: 'center',
     flexBasis: '30%',
   },
+  Inputs: {
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    width: screenWidth,
+    // backgroundColor: 'purple',
+    flexBasis: '40%',
+  },
   buttonRow: {
     marginTop: '2%',
-    width: '30%',
-    justifyContent: 'center',
+    width: screenWidth,
+    justifyContent: 'space-around',
     alignItems: 'center',
+    // backgroundColor: 'lime',
+    flexBasis: '30%',
   },
   hyperLink: {
-    color: 'blue',
+    color: '#009671',
+    fontSize: 16,
   },
   formLabel: {
     flexBasis: '25%',
@@ -204,9 +295,28 @@ const styles = {
   },
   redirectToLoginView: {
     flexDirection: 'row',
+    flexBasis: '20%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
     color: 'red',
-    fontSize: 8,
+    fontSize: 16,
+  },
+  input: {
+    color: '#fff',
+    // backgroundColo
+  },
+  actionButtons: {
+    color: '#fff',
+    backgroundColor: '#009671',
+    padding: 12,
+    borderRadius: 10,
+    minWidth: 160,
+    fontSize: 24,
+  },
+  bottomText: {
+    color: '#fff',
+    fontSize: 16,
   },
 };

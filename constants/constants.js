@@ -33,10 +33,31 @@ export const headers = {
 export const oathClient =
   '629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com';
 
+export const libraryViews = {
+  tiles: {id: 'tiles', position: 0},
+  swiper: {id: 'swiper', position: 1},
+};
+
+export const formatAsPercentage = x => `${parseFloat(x * 100).toFixed(1)}%`;
+
+export const epochToDate = function(seconds) {
+  let date = new Date(0);
+  date.setUTCSeconds(seconds);
+  return date.toLocaleString().split(',')[0];
+};
+
 export const removeExtension = function(filename) {
   var lastDotPosition = filename.lastIndexOf('.');
   if (lastDotPosition === -1) return filename;
   else return filename.substr(0, lastDotPosition);
+};
+
+export const screens = {
+  Library: 'Library',
+  Detector: 'Detector',
+  Login: 'Login',
+  LogOut: 'LogOut',
+  Register: 'Register',
 };
 
 export const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;

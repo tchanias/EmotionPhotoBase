@@ -1,70 +1,29 @@
 import React from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  ImageBackground,
-  TouchableOpacity,
-  Alert,
-  Button as RNButton,
-  ScrollView,
-} from 'react-native';
-import {
-  apiUrl,
-  headers,
-  subKey,
-  clearAsyncStorage,
-} from '../constants/constants';
-import ImagePicker from 'react-native-image-picker';
-import Button from '../Components/UI/Button';
-import RNFetchBlob from 'rn-fetch-blob';
+import {StyleSheet, Text, View} from 'react-native';
+import {libraryViews, removeExtension, screens} from '../constants/constants';
 import _ from 'lodash';
-import {
-  firebaseAuth,
-  LogOut,
-  isUserSignedIn,
-  app,
-} from '../constants/firebaseConfig';
+import Tiles from '../Components/Tiles';
+import {firebaseAuth} from '../constants/firebaseConfig';
 import firestore from '@react-native-firebase/firestore';
-import {appName, removeExtension} from '../constants/constants';
+import Logo from '../Components/UI/Logo';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {sharedStyles} from '../sharedStyles';
-import {Overlay, Divider} from 'react-native-elements';
+import {Button} from 'react-native-elements';
 import GalleryManager from 'react-native-gallery-manager';
-//
-import Swiper from 'react-native-swiper';
-import SwipeableViews from 'react-swipeable-views-native';
-import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+// TODO: clear unused libraries and code
+// import Swiper from 'react-native-swiper';
+// import SwipeableViews from 'react-swipeable-views-native';
+import Swiper from '../Components/Swiper';
+import {Container, Tab, Tabs, TabHeading, Icon} from 'native-base';
+import HeaderLeft from '../Components/UI/HeaderLeft';
+import HeaderRight from '../Components/UI/HeaderRight';
+import StatsModal from '../Components/UI/StatsModal';
+import EmotionAnalysis from '../Components/EmotionAnalysis';
 
-const image_picker_options = {
-  title: 'Select Photo',
-  takePhotoButtonTitle: 'Take Photo...',
-  chooseFromLibraryButtonTitle: 'Choose from Library...',
-  cameraType: 'back',
-  mediaType: 'photo',
-  maxWidth: 480,
-  maxHeight: 480,
-  quality: 1,
-  path: 'EmotionPhotoBase',
-  noData: true,
-  storageOptions: {
-    skipBackup: true,
-    privateDirectory: true,
-    cameraRoll: false,
-    path: 'EmotionPhotoBaseBackup',
-  },
-};
 const AccessTitle = 'EmotionPhotoBase needs authorization.';
 const AccessMessage =
   'EmotionPhotoBase requires authorization to access your files.';
 
-const swipeConfig = {
-  velocityThreshold: 0.1,
-  directionalOffsetThreshold: 30,
-  gestureIsClickThreshold: 2,
-};
 export default class Library extends React.Component {
   constructor(props) {
     super(props);
@@ -79,16 +38,18 @@ export default class Library extends React.Component {
       gallery: [],
       activeImage: 0,
       storedImages: [],
+      firebaseLoaded: false,
+      galleryLoaded: false,
+      view: libraryViews.tiles.id,
+      tab: libraryViews.tiles.position,
+      withDataOnly: true,
+      imagesWithData: [],
     };
   }
 
   componentDidMount() {
     this.setModalVisible(false);
-    this.libraryListener = this.props.navigation.addListener('didFocus', () =>
-      this.redirectionLoadParams(),
-    );
-    this.getFirebaseCollection();
-    this.getSavedImages();
+    this.getAllData();
 
     setTimeout(() => {
       this.props.navigation.setParams({
@@ -98,11 +59,21 @@ export default class Library extends React.Component {
     }, 3000);
   }
 
+  componentWillUnmount() {
+    this.setModalVisible(false);
+  }
+
+  getAllData = async () => {
+    let firebaseImages = await this.getFirebaseCollection();
+
+    this.getSavedImages(firebaseImages);
+  };
+
   setModalVisible = visible => {
     this.setState({modalVisible: visible});
   };
 
-  getSavedImages = () => {
+  getSavedImages = firebaseImages => {
     GalleryManager.requestAuthorization(AccessTitle, AccessMessage)
       .then(response => {
         if ((response.isAuthorized = true)) {
@@ -110,11 +81,19 @@ export default class Library extends React.Component {
             type: 'image',
             startFrom: 0,
             albumName: 'EmotionPhotoBase',
+            limit: 100,
           })
             .then(response => {
+              let gallery = this.returnValidImages(response.assets);
+              let imagesWithData = this.getImagesWithData(
+                firebaseImages,
+                response.assets,
+              );
               this.setState({
                 images: response.assets,
-                gallery: this.returnValidImages(response.assets),
+                gallery: gallery,
+                galleryLoaded: gallery && gallery.length > 0,
+                imagesWithData: imagesWithData,
               });
             })
             .catch(err => {
@@ -126,9 +105,7 @@ export default class Library extends React.Component {
         // response.isAuthorized = true || false
       })
       .catch(err => {
-        console.log(err =>
-          console.log('There was an error requesting access: ', err),
-        );
+        console.log('There was an error requesting access: ', err);
         this.setState({loading: false});
       });
   };
@@ -143,74 +120,37 @@ export default class Library extends React.Component {
       .get()
       .then(function(querySnapshot) {
         querySnapshot.forEach(doc => {
-          console.log(doc.id, ' => ', doc.data());
           imageData.push({data: doc.data(), id: doc.id});
         });
       })
       .catch(function(error) {
         console.log('Error getting document:', error);
       });
-    this.setState({storedImages: imageData});
+    this.setState({
+      storedImages: imageData,
+      firebaseLoaded: imageData && imageData.length > 0,
+    });
+    return imageData;
   };
-
-  componentWillUnmount() {
-    this.libraryListener.remove();
-  }
 
   static navigationOptions = ({navigation}) => {
-    let userMail = firebaseAuth.currentUser
-      ? firebaseAuth.currentUser.email
-      : '';
-    let userName = userMail ? userMail.substr(0, userMail.indexOf('@')) : '';
     return {
+      headerStyle: {
+        backgroundColor: '#009671',
+      },
       headerLeft: (
-        <TouchableOpacity
-          style={styles.headerStyles}
-          onPress={() => {
-            navigation.navigate('Detector');
-          }}>
-          <Text>{'Detector'}</Text>
-        </TouchableOpacity>
+        <HeaderLeft
+          navigation={navigation}
+          navigateTo={screens.Detector}
+          display={
+            <Icon name="camera-outline" style={sharedStyles.headerIcon} />
+          }
+        />
       ),
       // headerTitle: 'Detect Face Emotions',
-      headerTitle: userName,
-      headerRight: (
-        <TouchableOpacity
-          style={styles.headerStyles}
-          onPress={() => {
-            let user = firebaseAuth.currentUser;
-            if (user) {
-              navigation.state.params.LogOut();
-            } else {
-              navigation.state.params.LogIn();
-            }
-          }}>
-          <Text>{firebaseAuth.currentUser ? 'Log Out' : 'Log In'}</Text>
-        </TouchableOpacity>
-      ),
+      headerTitle: <Logo />,
+      headerRight: <HeaderRight navigation={navigation} />,
     };
-  };
-
-  redirectionLoadParams = () => {
-    this.props.navigation.setParams({
-      LogIn: this.signIn,
-      LogOut: this.signOut,
-    });
-  };
-  signIn = () => {
-    this.props.navigation.navigate('AuthLoading');
-  };
-
-  signOut = async () => {
-    await firebaseAuth
-      .signOut()
-      .then(() => {
-        Alert.alert('', 'inside then');
-        this.props.navigation.navigate('AuthLoading');
-      })
-      .catch(function(error) {
-        Alert.alert('Error during log out!', error.message);
-      });
   };
 
   findDominantEmotion = emotions => {
@@ -244,52 +184,23 @@ export default class Library extends React.Component {
             let beard = face.beard;
             let sideburns = face.sideburns;
             return (
-              <View
-                style={{
-                  marginBottom: 10,
-                }}
-                key={index}>
-                <View>
-                  <Text style={sharedStyles.titleText}>Face #{index + 1}</Text>
-                </View>
-                <View>
-                  <Text style={sharedStyles.subTitleText}>Emotions</Text>
-                  <Text>Anger:{emotions && emotions['anger']}</Text>
-                  <Text>Contempt:{emotions && emotions['contempt']}</Text>
-                  <Text>Disgust:{emotions && emotions['disgust']}</Text>
-                  <Text>Fear:{emotions && emotions['fear']}</Text>
-                  <Text>Happiness:{emotions && emotions['happiness']}</Text>
-                  <Text>Neutral:{emotions && emotions['neutral']}</Text>
-                  <Text>Sadness:{emotions && emotions['sadness']}</Text>
-                  <Text>Surprise:{emotions && emotions['surprise']}</Text>
-                </View>
-                <View>
-                  <Text style={sharedStyles.subTitleText}>Misc</Text>
-                  <Text>Gender:{gender}</Text>
-                  <Text>Age:{age}</Text>
-                  <Text>Smile:{smile}</Text>
-                  <Text>Glasses:{glasses}</Text>
-                  <Text>
-                    Hair Color:{hairColor} - {hairColorConfidence}
-                  </Text>
-                  <Text>Bald:{bald}</Text>
-                  <Text>
-                    Accessories:
-                    {accessories !== 'No Accessories'
-                      ? _.map(accessories, (acc, index) => {
-                          return accessories[acc];
-                        })
-                      : accessories}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={sharedStyles.subTitleText}>Facial Hair</Text>
-                  <Text>Moustache:{moustache}</Text>
-                  <Text>Beard:{beard}</Text>
-                  <Text>Sideburns:{sideburns}</Text>
-                </View>
-                <Divider style={{backgroundColor: 'blue'}} />
-              </View>
+              <EmotionAnalysis
+                emotions={emotions}
+                index={index}
+                gender={gender}
+                key={index}
+                age={age}
+                smile={smile}
+                glasses={glasses}
+                hairColor={hairColor}
+                hairColorConfidence={hairColorConfidence}
+                accessories={accessories}
+                moustache={moustache}
+                beard={beard}
+                bald={bald}
+                sideburns={sideburns}
+                facesLength={img.data.faces && img.data.faces.length}
+              />
             );
           });
         }
@@ -313,7 +224,7 @@ export default class Library extends React.Component {
   renderFaceBoxes(image) {
     if (this.state.storedImages) {
       const {storedImages} = this.state;
-      let view = _.map(storedImages, img => {
+      let view = storedImages.map(img => {
         if (img.id === image) {
           return img.data.faces.map((face, index) => {
             if (face.faceRectangle) {
@@ -358,6 +269,15 @@ export default class Library extends React.Component {
     }
   }
 
+  chooseImage = index => {
+    this.setState({
+      activeImage: index,
+      view: libraryViews.swiper.id,
+      tab: libraryViews.swiper.position,
+    });
+  };
+
+  // TODO: remove duplicate images
   returnValidImages = images => {
     let gallery = [];
     if (images) {
@@ -374,10 +294,11 @@ export default class Library extends React.Component {
   };
 
   onSwipeRight() {
-    const {images} = this.state;
-    if (images && images.length > 0) {
-      let newImage = this.state.activeImage - 1;
-      const lastImage = this.state.images.length - 1;
+    const {images, withDataOnly, imagesWithData, activeImage} = this.state;
+    let collection = withDataOnly ? imagesWithData : images;
+    if (collection && collection.length > 0) {
+      let newImage = activeImage - 1;
+      const lastImage = collection.length - 1;
       if (newImage >= 0) {
         this.setState({activeImage: newImage});
       } else {
@@ -387,10 +308,11 @@ export default class Library extends React.Component {
   }
 
   onSwipeLeft() {
-    const {images} = this.state;
-    if (images && images.length > 0) {
-      let newImage = this.state.activeImage + 1;
-      const imagesLength = this.state.images.length;
+    const {images, withDataOnly, imagesWithData, activeImage} = this.state;
+    let collection = withDataOnly ? imagesWithData : images;
+    if (collection && collection.length > 0) {
+      let newImage = activeImage + 1;
+      const imagesLength = collection.length;
       if (newImage < imagesLength) {
         this.setState({activeImage: newImage});
       } else {
@@ -399,9 +321,56 @@ export default class Library extends React.Component {
     }
   }
 
-  render() {
-    const {loading, images, activeImage} = this.state;
+  onChangeTab = value => {
+    this.setState({tab: value.i});
+  };
 
+  onWithDataOnlyChange = () => {
+    let newstate = !this.state.withDataOnly;
+    this.setState({withDataOnly: newstate});
+  };
+
+  isImageStoredInFirebase = (storedImages, image) => {
+    return storedImages.some(img => img.id === image);
+  };
+
+  getImagesWithData = (storedImages, images) => {
+    let imagesForReturn = [];
+    if (
+      storedImages &&
+      storedImages.length > 0 &&
+      images &&
+      images.length > 0
+    ) {
+      images.map(image => {
+        if (
+          this.isImageStoredInFirebase(
+            storedImages,
+            removeExtension(image.filename),
+          )
+        ) {
+          imagesForReturn.push(image);
+        }
+      });
+      return imagesForReturn;
+    } else {
+      return images;
+    }
+  };
+
+  render() {
+    const {
+      loading,
+      activeImage,
+      view,
+      tab,
+      images,
+      withDataOnly,
+      imagesWithData,
+      modalVisible,
+    } = this.state;
+
+    let collection = withDataOnly ? imagesWithData : images;
     return (
       <View>
         <Spinner
@@ -409,80 +378,71 @@ export default class Library extends React.Component {
           textContent={'Loading image data...'}
           textStyle={{color: sharedStyles.textColor}}
         />
-        {images && images[activeImage] && (
-          <Overlay
-            isVisible={this.state.modalVisible}
-            fullScreen
-            overlayStyle={{overflowY: 'auto'}}
-            onBackdropPress={() => this.setModalVisible(false)}>
-            <View style={{marginTop: 22}}>
-              <ScrollView>
-                <View>
-                  {this.prepareModalData(
-                    removeExtension(images[activeImage].filename),
-                  )}
-                  <RNButton
-                    title="Hide Modal"
-                    onPress={() => {
-                      this.setModalVisible(false);
-                    }}
-                  />
-                </View>
-              </ScrollView>
-            </View>
-          </Overlay>
+        {collection && collection[activeImage] && (
+          <StatsModal
+            modalVisible={modalVisible}
+            setModalVisible={value => this.setModalVisible(value)}
+            data={this.prepareModalData(
+              removeExtension(collection[activeImage].filename),
+            )}
+          />
         )}
-        <View style={sharedStyles.buttonWrapper}>
-          {!loading && images.length > 0 && (
-            // <Swiper
-            <>
-              <View>
-                <View>
-                  <Text
-                    style={sharedStyles.subTitleText}>{`Image: ${activeImage +
-                    1} out of ${images.length}`}</Text>
-                </View>
-                {images && images[activeImage] && (
-                  <View>
-                    <TouchableOpacity
-                      onPress={() => this.setModalVisible(true)}
-                      style={sharedStyles.button}>
-                      <Text style={sharedStyles.button_text}>View Data</Text>
-                    </TouchableOpacity>
+        <View style={sharedStyles.libraryWrapper}>
+          {!loading && collection.length > 0 && (
+            <Container>
+              <Tabs
+                page={tab}
+                onChangeTab={this.onChangeTab}
+                locked={tab === libraryViews.swiper.position}>
+                <Tab
+                  heading={
+                    <TabHeading style={styles.tab}>
+                      <Icon name="grid-outline" />
+                    </TabHeading>
+                  }>
+                  <View style={sharedStyles.tilesWrapper}>
+                    <Tiles
+                      images={collection}
+                      chooseImage={index => this.chooseImage(index)}
+                    />
                   </View>
-                )}
-              </View>
-              <GestureRecognizer
-                onSwipeLeft={state => this.onSwipeLeft(state)}
-                onSwipeRight={state => this.onSwipeRight(state)}
-                config={swipeConfig}
-                style={{
-                  flex: 1,
-                  backgroundColor: this.state.backgroundColor,
-                }}>
-                {images && images[activeImage] && (
-                  <View
-                    key={activeImage}
-                    style={{
-                      ...styles.slide,
-                      width: images[activeImage].width,
-                      height: images[activeImage].height,
-                    }}>
-                    <ImageBackground
-                      style={{
-                        width: images[activeImage].width,
-                        height: images[activeImage].height,
-                      }}
-                      source={{uri: images[activeImage].uri}}
-                      resizeMode={'contain'}>
-                      {this.renderFaceBoxes(
-                        removeExtension(images[activeImage].filename),
-                      )}
-                    </ImageBackground>
+                </Tab>
+                <Tab
+                  heading={
+                    <TabHeading style={styles.tab}>
+                      <Icon name="copy-outline" />
+                    </TabHeading>
+                  }>
+                  <View style={sharedStyles.sliderWrapper}>
+                    <Swiper
+                      images={collection}
+                      current={activeImage}
+                      onSwipeLeft={() => this.onSwipeLeft()}
+                      onSwipeRight={() => this.onSwipeRight()}
+                      renderFaceBoxes={data => this.renderFaceBoxes(data)}
+                    />
+                    {collection && collection[activeImage] && (
+                      <View style={styles.statsButtonContainer}>
+                        <Button
+                          buttonStyle={sharedStyles.circleButtons}
+                          onPress={() => this.setModalVisible(true)}
+                          icon={
+                            <Icon
+                              name="bar-chart-outline"
+                              style={sharedStyles.circleButtonsIcon}
+                            />
+                          }
+                          title="View Stats"
+                        />
+                      </View>
+                    )}
                   </View>
-                )}
-              </GestureRecognizer>
-            </>
+                </Tab>
+                {/* <Tab heading={ <TabHeading><Icon name="apps" /></TabHeading>}>
+                <Tab3 />
+              </Tab> */}
+              </Tabs>
+            </Container>
           )}
         </View>
       </View>
@@ -508,6 +468,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
+  statsButtonContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    marginTop: 30,
+  },
   slideWrapper: {
     height: 500,
     flex: 1,
@@ -516,5 +483,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  tab: {
+    backgroundColor: '#00B386',
   },
 });

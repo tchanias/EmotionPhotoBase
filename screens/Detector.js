@@ -1,37 +1,24 @@
 import React from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  ImageBackground,
-  TouchableOpacity,
-  Alert,
-  Button as RNButton,
-  ScrollView,
-} from 'react-native';
+import {StyleSheet, Text, View, ImageBackground, Alert} from 'react-native';
+import Logo from '../Components/UI/Logo';
 import {
   apiUrl,
-  headers,
+  screens,
   subKey,
-  clearAsyncStorage,
+  formatAsPercentage,
 } from '../constants/constants';
 import ImagePicker from 'react-native-image-picker';
-import Button from '../Components/UI/Button';
 import RNFetchBlob from 'rn-fetch-blob';
-import _ from 'lodash';
-import {
-  firebaseAuth,
-  LogOut,
-  isUserSignedIn,
-  app,
-} from '../constants/firebaseConfig';
+import {firebaseAuth} from '../constants/firebaseConfig';
 import firestore from '@react-native-firebase/firestore';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {sharedStyles} from '../sharedStyles';
-import {Overlay, Divider} from 'react-native-elements';
-import {GoogleSignin} from '@react-native-community/google-signin';
+import {sharedStyles, screenWidth} from '../sharedStyles';
+import {Button} from 'react-native-elements';
+import HeaderLeft from '../Components/UI/HeaderLeft';
+import HeaderRight from '../Components/UI/HeaderRight';
+import {Icon} from 'native-base';
+import StatsModal from '../Components/UI/StatsModal';
+import EmotionAnalysis from '../Components/EmotionAnalysis';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -39,8 +26,8 @@ const image_picker_options = {
   chooseFromLibraryButtonTitle: 'Choose from Library...',
   cameraType: 'back',
   mediaType: 'photo',
-  maxWidth: 480,
-  maxHeight: 480,
+  maxWidth: screenWidth,
+  maxHeight: 440,
   quality: 1,
   path: 'images',
   noData: false,
@@ -62,89 +49,32 @@ export class Detector extends React.Component {
       modalVisible: false,
       faces: [],
       loading: false,
+      imageDimensions: null,
     };
-  }
-
-  componentDidMount() {
-    this.detectorListener = this.props.navigation.addListener('didFocus', () =>
-      this.redirectionLoadParams(),
-    );
-    setTimeout(() => {
-      this.props.navigation.setParams({
-        LogIn: this.signIn,
-        LogOut: this.signOut,
-      });
-    }, 3000);
   }
 
   componentWillUnmount() {
     this.setModalVisible(false);
-    this.detectorListener.remove();
   }
 
   static navigationOptions = ({navigation}) => {
-    let userMail = firebaseAuth.currentUser
-      ? firebaseAuth.currentUser.email
-      : '';
-    let userName = userMail ? userMail.substr(0, userMail.indexOf('@')) : '';
     return {
+      headerStyle: {
+        backgroundColor: '#009671',
+      },
       headerLeft: (
-        <TouchableOpacity
-          style={styles.headerStyles}
-          onPress={() => {
-            navigation.navigate('Library');
-          }}>
-          <Text>{'Library'}</Text>
-        </TouchableOpacity>
+        <HeaderLeft
+          navigation={navigation}
+          navigateTo={screens.Library}
+          display={
+            <Icon name="images-outline" style={sharedStyles.headerIcon} />
+          }
+        />
       ),
       // headerTitle: 'Detect Face Emotions',
-      headerTitle: userName,
-      headerRight: (
-        <TouchableOpacity
-          style={styles.headerStyles}
-          onPress={() => {
-            let user = firebaseAuth.currentUser;
-            if (user) {
-              navigation.state.params.LogOut();
-            } else {
-              navigation.state.params.LogIn();
-            }
-          }}>
-          <Text>{firebaseAuth.currentUser ? 'Log Out' : 'Log In'}</Text>
-        </TouchableOpacity>
-      ),
+      headerTitle: <Logo />,
+      headerRight: <HeaderRight navigation={navigation} />,
     };
-  };
-
-  redirectionLoadParams = () => {
-    this.props.navigation.setParams({
-      LogIn: this.signIn,
-      LogOut: this.signOut,
-    });
-  };
-  signIn = () => {
-    this.props.navigation.navigate('AuthLoading');
-  };
-  signOutGoogle = async () => {
-    try {
-      // await GoogleSignin.revokeAccess();
-      await GoogleSignin.signOut();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  signOut = async () => {
-    await this.signOutGoogle();
-    await firebaseAuth
-      .signOut()
-      .then(() => {
-        Alert.alert('', 'inside then');
-        this.props.navigation.navigate('AuthLoading');
-      })
-      .catch(function(error) {
-        Alert.alert('Error during log out!', error.message);
-      });
   };
 
   saveToFirebase = () => {
@@ -159,7 +89,7 @@ export class Detector extends React.Component {
       photo = {...photo, filename};
       let userId = firebaseAuth.currentUser.uid;
       let faces = [];
-      let views = _.map(this.state.face_data, (x, key) => {
+      let views = this.state.face_data.map((x, key) => {
         let faceObject = {
           faceId: x.faceId,
           emotions: x.faceAttributes.emotion,
@@ -194,14 +124,8 @@ export class Detector extends React.Component {
           sideburns: x.faceAttributes.facialHair.sideburns,
           faceRectangle: x.faceRectangle,
         };
-
-        // let faceObject ={emotions:emotions,gender:gender,smile:smile,age:age,glasses:glasses,bald:bald,hairColor:hairColor,hairColorConfidence:hairColorConfidence
-        // ,accessories:accessories,moustache:moustache,beard:beard,sideburns:sideburns,faceObject:faceObject}
         faces.push(faceObject);
       });
-      // this.setState({faces: faces}, () => {
-
-      // });
       firestore()
         .collection('library')
         .doc(userId)
@@ -211,17 +135,6 @@ export class Detector extends React.Component {
           photo: photo,
           faces: faces,
         });
-      // RNFetchBlob.config({
-      //   // add this option that makes response data to be stored as a file,
-      //   // this is much more performant.
-      //   fileCache : true,
-      // }).
-      const dirs = RNFetchBlob.fs.dirs;
-      console.log(dirs.DocumentDir);
-      console.log(dirs.CacheDir);
-      console.log(dirs.DCIMDir);
-      console.log(dirs.DownloadDir);
-      console.log('photo: ', photo);
       Alert.alert('', 'image Saved successfully!!!');
     } else {
       Alert.alert('Cannot detect faces', 'Please try again.');
@@ -249,8 +162,8 @@ export class Detector extends React.Component {
   };
 
   mapJsonData = () => {
-    if (this.state.face_data) {
-      let views = _.map(this.state.face_data, (x, key) => {
+    if (this.state.face_data && this.state.face_data.length > 0) {
+      let views = this.state.face_data.map((x, key) => {
         let emotions = x.faceAttributes.emotion;
         let gender = x.faceAttributes.gender;
         let smile = x.faceAttributes.smile;
@@ -258,76 +171,45 @@ export class Detector extends React.Component {
         let glasses = x.faceAttributes.glasses;
         let bald = x.faceAttributes.hair.bald;
         let hairColor = x.faceAttributes.hair
-          ? x.faceAttributes.hair[0]
-            ? x.faceAttributes.hair[0].hairColor
-              ? x.faceAttributes.hair[0].hairColor
+          ? x.faceAttributes.hair.hairColor
+            ? x.faceAttributes.hair.hairColor[0]
+              ? x.faceAttributes.hair.hairColor[0].color
               : 'No hair'
             : 'No hair'
           : 'No hair';
         let hairColorConfidence = x.faceAttributes.hair
-          ? x.faceAttributes.hair[0]
-            ? x.faceAttributes.hair[0].confidence
-              ? x.faceAttributes.hair[0].confidence
+          ? x.faceAttributes.hair.hairColor
+            ? x.faceAttributes.hair.hairColor[0]
+              ? x.faceAttributes.hair.hairColor[0].confidence
               : ''
             : ''
           : '';
         let accessories = x.faceAttributes.accessories
-          ? x.faceAttributes.accessories.length
-            ? x.faceAttributes.accessories.length >= 1
-              ? x.faceAttributes.accessories
-              : 'No Accessories'
+          ? x.faceAttributes.accessories.length >= 1
+            ? x.faceAttributes.accessories
             : 'No Accessories'
           : 'No Accessories';
         let moustache = x.faceAttributes.facialHair.moustache;
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
         return (
-          <View
-            style={{
-              marginBottom: 10,
-            }}
-            key={key}>
-            <View>
-              <Text style={sharedStyles.titleText}>Face #{key}</Text>
-            </View>
-            <View>
-              <Text style={sharedStyles.subTitleText}>Emotions</Text>
-              <Text>Anger:{emotions['anger']}</Text>
-              <Text>Contempt:{emotions['contempt']}</Text>
-              <Text>Disgust:{emotions['disgust']}</Text>
-              <Text>Fear:{emotions['fear']}</Text>
-              <Text>Happiness:{emotions['happiness']}</Text>
-              <Text>Neutral:{emotions['neutral']}</Text>
-              <Text>Sadness:{emotions['sadness']}</Text>
-              <Text>Surprise:{emotions['surprise']}</Text>
-            </View>
-            <View>
-              <Text style={sharedStyles.subTitleText}>Misc</Text>
-              <Text>Gender:{gender}</Text>
-              <Text>Age:{age}</Text>
-              <Text>Smile:{smile}</Text>
-              <Text>Glasses:{glasses}</Text>
-              <Text>
-                Hair Color:{hairColor} - {hairColorConfidence}
-              </Text>
-              <Text>Bald:{bald}</Text>
-              <Text>
-                Accessories:
-                {accessories !== 'No Accessories'
-                  ? _.map(accessories, (acc, index) => {
-                      return accessories[acc];
-                    })
-                  : accessories}
-              </Text>
-            </View>
-            <View>
-              <Text style={sharedStyles.subTitleText}>Facial Hair</Text>
-              <Text>Moustache:{moustache}</Text>
-              <Text>Beard:{beard}</Text>
-              <Text>Sideburns:{sideburns}</Text>
-            </View>
-            <Divider style={{backgroundColor: 'blue'}} />
-          </View>
+          <EmotionAnalysis
+            emotions={emotions}
+            index={key}
+            key={key}
+            gender={gender}
+            age={age}
+            smile={smile}
+            glasses={glasses}
+            hairColor={hairColor}
+            hairColorConfidence={hairColorConfidence}
+            accessories={accessories}
+            moustache={moustache}
+            beard={beard}
+            bald={bald}
+            sideburns={sideburns}
+            facesLength={this.state.face_data && this.state.face_data.length}
+          />
         );
       });
       return <View>{views}</View>;
@@ -347,123 +229,123 @@ export class Detector extends React.Component {
   };
 
   render() {
+    const {
+      imageDimensions,
+      modalVisible,
+      loading,
+      photo,
+      face_data,
+    } = this.state;
     return (
       <View
       // style={sharedStyles.detectorContainer}
       >
         <Spinner
-          visible={this.state.loading}
+          visible={loading}
           textContent={'Loading image data...'}
           textStyle={{color: sharedStyles.textColor}}
         />
 
-        <Overlay
-          isVisible={this.state.modalVisible}
-          fullScreen
-          overlayStyle={{overflowY: 'auto'}}
-          onBackdropPress={() => this.setModalVisible(false)}>
-          <View style={{marginTop: 22}}>
-            <ScrollView>
-              <View>
-                {this.mapJsonData()}
-                <RNButton
-                  title="Hide Modal"
-                  onPress={() => {
-                    this.setModalVisible(false);
-                  }}
+        <StatsModal
+          modalVisible={modalVisible}
+          setModalVisible={value => this.setModalVisible(value)}
+          data={this.mapJsonData()}
+        />
+        <View
+          style={
+            !photo
+              ? sharedStyles.detectorPhotoStyle
+              : sharedStyles.detectorPhotoPickedStyle
+          }>
+          <ImageBackground
+            style={imageDimensions || {width: '100%', height: '100%'}}
+            source={photo || require('../placeholder.png')}
+            resizeMode={'contain'}>
+            {this._renderFaceBoxes()}
+          </ImageBackground>
+        </View>
+        <View style={styles.ButtonContainer}>
+          {!loading && (
+            <Button
+              buttonStyle={sharedStyles.circleButtons}
+              onPress={this.pickImage}
+              icon={
+                <Icon
+                  name="image-outline"
+                  style={sharedStyles.circleButtonsIcon}
                 />
-              </View>
-            </ScrollView>
-          </View>
-        </Overlay>
-
-        <ImageBackground
-          style={sharedStyles.detectorPhotoStyle}
-          source={this.state.photo}
-          resizeMode={'contain'}>
-          {this._renderFaceBoxes.call(this)}
-        </ImageBackground>
-        <View style={sharedStyles.buttonWrapper}>
-          {!this.state.loading && (
-            <TouchableOpacity
-              // text={this.state.face_data?'Change Photo':"Pick Photo"}
-              onPress={this._pickImage.bind(this)}
-              style={sharedStyles.button}
-              // button_text_styles={sharedStyles.button_text}
-            >
-              <Text style={sharedStyles.button_text}>
-                {this.state.face_data ? 'Change Photo' : 'Pick Photo'}
-              </Text>
-            </TouchableOpacity>
+              }
+              title={face_data ? 'Change Photo' : 'Pick Photo'}
+            />
           )}
-          {this.state.face_data && (
-            <TouchableOpacity
-              // text="View Data"
-              // onpress={() => this.setModalVisible(true)}
+          {face_data && (
+            <Button
+              buttonStyle={sharedStyles.circleButtons}
               onPress={() => this.openModal()}
-              style={sharedStyles.button}>
-              <Text style={sharedStyles.button_text}>View Data</Text>
-            </TouchableOpacity>
+              icon={
+                <Icon
+                  name="bar-chart-outline"
+                  style={sharedStyles.circleButtonsIcon}
+                />
+              }
+              title="View Stats"
+            />
           )}
-          {this.state.face_data && (
-            <TouchableOpacity
-              // text="View Data"
-              // onpress={() => this.setModalVisible(true)}
+          {face_data && (
+            <Button
+              buttonStyle={sharedStyles.circleButtons}
+              icon={
+                <Icon
+                  name="save-outline"
+                  style={sharedStyles.circleButtonsIcon}
+                />
+              }
+              title="Save Photo"
               onPress={() => this.saveToFirebase()}
-              style={sharedStyles.button}>
-              <Text style={sharedStyles.button_text}>Save</Text>
-            </TouchableOpacity>
+            />
           )}
+          <View />
         </View>
       </View>
     );
   }
 
-  _pickImage() {
-    this.setState({
-      face_data: null,
-    });
-
+  pickImage = () => {
     ImagePicker.showImagePicker(image_picker_options, response => {
       if (response.error) {
         Alert.alert('Error getting the image. Please try again.');
       } else {
         console.log('imagepicker response: ', response);
-        let source = {uri: response.uri};
+        if (response.uri) {
+          let source = {uri: response.uri};
 
-        this.setState(
-          {
-            photo_style: {
-              position: 'relative',
-              width: response.width,
-              height: response.height,
+          this.setState(
+            {
+              photo_style: {
+                position: 'relative',
+                width: response.width,
+                height: response.height,
+              },
+              has_photo: true,
+              photo: source,
+              photo_data: response.data,
+              imageDimensions: {
+                width: response.width,
+                height: response.height,
+                maxWidth: screenWidth,
+                maxHeight: 440,
+              },
             },
-            has_photo: true,
-            photo: source,
-            photo_data: response.data,
-          },
-          () => {
-            this._detectFaces();
-          },
-        );
+            () => {
+              this.detectFaces();
+            },
+          );
+        }
       }
     });
-  }
+  };
 
-  _renderDetectFacesButton() {
-    if (this.state.has_photo) {
-      return (
-        <Button
-          text="Detect Faces"
-          onpress={this._detectFaces.bind(this)}
-          button_styles={styles.button}
-          button_text_styles={styles.button_text}
-        />
-      );
-    }
-  }
-
-  _detectFaces() {
+  detectFaces() {
     this.setState({loading: true}, () => {
       console.log('photo_data: ', this.state.photo_data);
       RNFetchBlob.fetch(
@@ -482,6 +364,7 @@ export class Detector extends React.Component {
         .then(json => {
           console.log('detector response: ', json);
           if (json.length) {
+            console.log('face data: ', json);
             this.setState({
               face_data: json,
               loading: false,
@@ -516,20 +399,20 @@ export class Detector extends React.Component {
 
   _renderFaceBoxes() {
     if (this.state.face_data) {
-      let views = _.map(this.state.face_data, x => {
+      let views = this.state.face_data.map((face, index) => {
         let box = {
           position: 'absolute',
-          top: x.faceRectangle.top,
-          left: x.faceRectangle.left,
+          top: face.faceRectangle.top,
+          left: face.faceRectangle.left,
         };
 
         const [emotion, emotionPercentage] = this.findDominantEmotion(
-          x.faceAttributes.emotion,
+          face.faceAttributes.emotion,
         );
 
         let style = {
-          width: x.faceRectangle.width,
-          height: x.faceRectangle.height,
+          width: face.faceRectangle.width,
+          height: face.faceRectangle.height,
           borderWidth: 2,
           borderColor: '#fff',
         };
@@ -539,13 +422,14 @@ export class Detector extends React.Component {
         };
 
         return (
-          <View key={x.faceId} style={box}>
+          <View key={face.faceId} style={box}>
+            <Text style={attr}>Face #{index + 1}</Text>
             <View style={style} />
             <Text style={attr}>
-              {x.faceAttributes.gender}, {x.faceAttributes.age} y/o
+              {face.faceAttributes.gender}, {face.faceAttributes.age} y/o
             </Text>
             <Text style={attr}>
-              {emotion}: {emotionPercentage}
+              {emotion}: {formatAsPercentage(emotionPercentage)}
             </Text>
           </View>
         );
@@ -560,7 +444,6 @@ const styles = StyleSheet.create({
   headerStyles: {
     borderRadius: 30,
   },
-
   container: {
     flex: 1,
     alignItems: 'center',
@@ -570,10 +453,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   ButtonContainer: {
-    display: 'flex',
-    flexDirection: 'row',
+    backgroundColor: '#373737',
+    flexDirection: 'column',
     justifyContent: 'space-around',
     alignItems: 'center',
+    height: '100%',
+    flex: 1,
+    width: '100%',
   },
 });
 

@@ -4,7 +4,6 @@ import Detector from '../screens/Detector';
 import Library from '../screens/Library';
 import Register from '../screens/Register';
 import Login from '../screens/Login';
-import Home from '../screens/Home';
 import Loading from '../screens/Loading';
 
 const AppStack = createStackNavigator(
@@ -14,7 +13,10 @@ const AppStack = createStackNavigator(
   },
   {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
 );
-const AuthStack = createStackNavigator({Login, Register});
+const AuthStack = createStackNavigator(
+  {Login, Register},
+  {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
+);
 export default createAppContainer(
   createSwitchNavigator(
     {

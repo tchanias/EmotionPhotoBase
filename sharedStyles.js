@@ -1,3 +1,6 @@
+import {Dimensions} from 'react-native';
+export const screenWidth = Dimensions.get('window').width;
+
 const mainBackgroundColor = '#373737';
 const mainElementColor = '#05BD7D';
 const textColor = '#fff';
@@ -33,18 +36,59 @@ export const sharedStyles = {
     height: '100%',
     width: '100%',
   },
-  buttonWrapper: {
+  libraryWrapper: {
     backgroundColor: mainBackgroundColor,
     width: '100%',
     flexGrow: 1,
     height: '100%',
+    flexDirection: 'row',
+  },
+  tilesWrapper: {
+    backgroundColor: mainBackgroundColor,
+    width: '100%',
+    flexGrow: 1,
+    height: '100%',
+    flexDirection: 'row',
+  },
+  sliderWrapper: {
+    backgroundColor: mainBackgroundColor,
+    width: '100%',
+    flex: 1,
+    justifyContent: 'flex-start',
+
+    // height: '100%',
+    // flexDirection: 'row',
   },
   detectorPhotoStyle: {
     maxHeight: 440,
     position: 'relative',
     width: '100%',
     height: '100%',
+    backgroundColor: '#E7E9ED',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+  },
+
+  detectorPhotoPickedStyle: {
+    maxHeight: 440,
+    position: 'relative',
+    width: '100%',
+    height: '100%',
     backgroundColor: mainBackgroundColor,
+    // justifyContent: 'center',
+    alignItems: 'center',
+  },
+  circleButtons: {
+    color: '#fff',
+    minWidth: 160,
+    backgroundColor: '#009671',
+    borderRadius: 10,
+    padding: 12,
+    // width: 48,
+  },
+  circleButtonsIcon: {
+    color: '#fff',
+    marginRight: 8,
   },
   button_text: {
     ...buttonFont,
@@ -52,12 +96,21 @@ export const sharedStyles = {
   },
   titleText: {
     ...titleFont,
-    color: '#fff',
     marginBottom: 10,
   },
   subTitleText: {
     ...subTitleFont,
-    color: '#fff',
     marginBottom: 4,
+  },
+  headerLeft: {
+    paddingLeft: 20,
+    color: '#fff',
+  },
+  headerRight: {
+    paddingRight: 20,
+    color: '#fff',
+  },
+  headerIcon: {
+    color: '#fff',
   },
 };

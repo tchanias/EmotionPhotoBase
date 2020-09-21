@@ -1,0 +1,88 @@
+import React from 'react';
+import {View, Text} from 'react-native';
+import {formatAsPercentage} from '../constants/constants';
+import {sharedStyles} from '../sharedStyles';
+import {Divider} from 'react-native-elements';
+
+export default function EmotionAnalysis(props) {
+  const {
+    emotions,
+    index,
+    gender,
+    age,
+    smile,
+    glasses,
+    hairColor,
+    hairColorConfidence,
+    accessories,
+    moustache,
+    beard,
+    bald,
+    sideburns,
+    facesLength,
+  } = props;
+  console.log('accessories: ', accessories);
+  return (
+    <View style={styles.faceContainer} key={index}>
+      <View>
+        <Text style={sharedStyles.titleText}>Face #{parseInt(index) + 1}</Text>
+      </View>
+      <View style={styles.listColumn}>
+        <Text style={sharedStyles.subTitleText}>Emotions</Text>
+        <Text>Anger:{' ' + formatAsPercentage(emotions['anger'])}</Text>
+        <Text>Contempt:{' ' + formatAsPercentage(emotions['contempt'])}</Text>
+        <Text>Disgust:{' ' + formatAsPercentage(emotions['disgust'])}</Text>
+        <Text>Fear:{' ' + formatAsPercentage(emotions['fear'])}</Text>
+        <Text>
+          Happiness:
+          {' ' + formatAsPercentage(emotions['happiness'])}
+        </Text>
+        <Text>Neutral:{' ' + formatAsPercentage(emotions['neutral'])}</Text>
+        <Text>Sadness:{' ' + formatAsPercentage(emotions['sadness'])}</Text>
+        <Text>Surprise:{' ' + formatAsPercentage(emotions['surprise'])}</Text>
+      </View>
+      <View style={styles.listColumn}>
+        <Text style={sharedStyles.subTitleText}>Misc</Text>
+        <Text>Gender:{' ' + gender}</Text>
+        <Text>Age:{' ' + age}</Text>
+        <Text>Smile:{' ' + smile}</Text>
+        <Text>Glasses:{' ' + glasses}</Text>
+        <Text>
+          Hair Color:{' ' + hairColor}{' '}
+          {hairColorConfidence &&
+            `- ${formatAsPercentage(hairColorConfidence)}`}
+        </Text>
+        <Text>Bald:{' ' + formatAsPercentage(bald)}</Text>
+        <Text>
+          Accessories:{' '}
+          {accessories &&
+          accessories !== 'No Accessories' &&
+          accessories.length > 0
+            ? accessories.map((acc, index) => {
+                return ` ${acc.type} ${' - ' +
+                  formatAsPercentage(acc.confidence)}`;
+              })
+            : accessories}
+        </Text>
+      </View>
+      <View style={styles.listColumn}>
+        <Text style={sharedStyles.subTitleText}>Facial Hair</Text>
+        <Text>Moustache:{' ' + formatAsPercentage(moustache)}</Text>
+        <Text>Beard:{' ' + formatAsPercentage(beard)}</Text>
+        <Text>Sideburns:{' ' + formatAsPercentage(sideburns)}</Text>
+      </View>
+      {parseInt(index) + 1 < facesLength && <Divider style={styles.divider} />}
+    </View>
+  );
+}
+const styles = {
+  listColumn: {
+    marginBottom: 10,
+  },
+  divider: {
+    backgroundColor: '#009671',
+  },
+  faceContainer: {
+    marginBottom: 10,
+  },
+};

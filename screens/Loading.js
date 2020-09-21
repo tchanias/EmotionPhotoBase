@@ -1,11 +1,6 @@
 import React from 'react';
 import {View, Text, ActivityIndicator, StyleSheet, Alert} from 'react-native';
-import {
-  firebase,
-  firebaseAuth,
-  isUserSignedIn,
-  app,
-} from '../constants/firebaseConfig';
+import {firebaseAuth} from '../constants/firebaseConfig';
 
 export default class Loading extends React.Component {
   componentDidMount() {
