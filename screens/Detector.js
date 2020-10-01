@@ -92,36 +92,47 @@ export class Detector extends React.Component {
       let views = this.state.face_data.map((x, key) => {
         let faceObject = {
           faceId: x.faceId,
-          emotions: x.faceAttributes.emotion,
-          gender: x.faceAttributes.gender,
-          smile: x.faceAttributes.smile,
-          age: x.faceAttributes.age,
-          glasses: x.faceAttributes.glasses,
-          bald: x.faceAttributes.hair.bald,
-          hairColor: x.faceAttributes.hair
-            ? x.faceAttributes.hair[0]
-              ? x.faceAttributes.hair[0].hairColor
-                ? x.faceAttributes.hair[0].hairColor
-                : 'No hair'
-              : 'No hair'
-            : 'No hair',
-          hairColorConfidence: x.faceAttributes.hair
-            ? x.faceAttributes.hair[0]
-              ? x.faceAttributes.hair[0].confidence
-                ? x.faceAttributes.hair[0].confidence
+          emotions: x.faceAttributes && x.faceAttributes.emotion,
+          gender: x.faceAttributes && x.faceAttributes.gender,
+          smile: x.faceAttributes && x.faceAttributes.smile,
+          age: x.faceAttributes && x.faceAttributes.age,
+          glasses: x.faceAttributes && x.faceAttributes.glasses,
+          bald:
+            x.faceAttributes &&
+            x.faceAttributes.hair &&
+            x.faceAttributes.hair.bald,
+          hairColor:
+            x.faceAttributes && x.faceAttributes.hair
+              ? x.faceAttributes.hair.hairColor &&
+                x.faceAttributes.hair.hairColor.length > 0
+                ? x.faceAttributes.hair.hairColor[0]
+                  ? x.faceAttributes.hair.hairColor[0].color
+                  : ''
                 : ''
-              : ''
-            : '',
-          accessories: x.faceAttributes.accessories
-            ? x.faceAttributes.accessories.length
-              ? x.faceAttributes.accessories.length >= 1
-                ? x.faceAttributes.accessories
-                : 'No Accessories'
-              : 'No Accessories'
-            : 'No Accessories',
-          moustache: x.faceAttributes.facialHair.moustache,
-          beard: x.faceAttributes.facialHair.beard,
-          sideburns: x.faceAttributes.facialHair.sideburns,
+              : '',
+          hairColorConfidence:
+            x.faceAttributes && x.faceAttributes.hair
+              ? x.faceAttributes.hair.hairColor &&
+                x.faceAttributes.hair.hairColor.length > 0
+                ? x.faceAttributes.hair.hairColor[0]
+                  ? x.faceAttributes.hair.hairColor[0].confidence
+                  : 0
+                : 0
+              : 0,
+          accessories: x.faceAttributes && x.faceAttributes.accessories,
+          moustache:
+            x.faceAttributes &&
+            x.faceAttributes.facialHair &&
+            x.faceAttributes.facialHair.moustache,
+          beard:
+            x.faceAttributes &&
+            x.faceAttributes.facialHair &&
+            x.faceAttributes.facialHair.beard,
+          sideburns:
+            x.faceAttributes &&
+            x.faceAttributes.facialHair &&
+            x.faceAttributes.facialHair.sideburns,
+          makeup: x.faceAttributes && x.faceAttributes.makeup,
           faceRectangle: x.faceRectangle,
         };
         faces.push(faceObject);
@@ -192,6 +203,7 @@ export class Detector extends React.Component {
         let moustache = x.faceAttributes.facialHair.moustache;
         let beard = x.faceAttributes.facialHair.beard;
         let sideburns = x.faceAttributes.facialHair.sideburns;
+        let makeup = x.faceAttributes.makeup;
         return (
           <EmotionAnalysis
             emotions={emotions}
@@ -208,6 +220,7 @@ export class Detector extends React.Component {
             beard={beard}
             bald={bald}
             sideburns={sideburns}
+            makeup={makeup}
             facesLength={this.state.face_data && this.state.face_data.length}
           />
         );
@@ -315,7 +328,6 @@ export class Detector extends React.Component {
       if (response.error) {
         Alert.alert('Error getting the image. Please try again.');
       } else {
-        console.log('imagepicker response: ', response);
         if (response.uri) {
           let source = {uri: response.uri};
 
@@ -347,7 +359,6 @@ export class Detector extends React.Component {
 
   detectFaces() {
     this.setState({loading: true}, () => {
-      console.log('photo_data: ', this.state.photo_data);
       RNFetchBlob.fetch(
         'POST',
         apiUrl,
@@ -362,9 +373,7 @@ export class Detector extends React.Component {
           return res.json();
         })
         .then(json => {
-          console.log('detector response: ', json);
           if (json.length) {
-            console.log('face data: ', json);
             this.setState({
               face_data: json,
               loading: false,
@@ -373,6 +382,7 @@ export class Detector extends React.Component {
             this.setState(
               {
                 loading: false,
+                face_data: null,
               },
               () => {
                 Alert.alert(
@@ -386,7 +396,7 @@ export class Detector extends React.Component {
           return json;
         })
         .catch(function(error) {
-          this.setState({loading: false}, () => {
+          this.setState({loading: false, face_data: null}, () => {
             console.log(error);
             Alert.alert(
               'Sorry, the request failed. Please try again.' +

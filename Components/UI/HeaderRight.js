@@ -1,5 +1,5 @@
-import React, {useEffect, useRef} from 'react';
-import {TouchableOpacity, Text, View, Alert} from 'react-native';
+import React from 'react';
+import {TouchableOpacity, View, Alert} from 'react-native';
 import {sharedStyles} from '../../sharedStyles';
 import {firebaseAuth} from '../../constants/firebaseConfig';
 import {Icon} from 'native-base';
@@ -32,12 +32,6 @@ export default function HeaderRight(props) {
     } catch (error) {
       console.error(error);
     }
-  };
-  const redirectionLoadParams = function() {
-    setParams({
-      LogIn: signIn,
-      LogOut: signOut,
-    });
   };
 
   let userMail = firebaseAuth.currentUser ? firebaseAuth.currentUser.email : '';

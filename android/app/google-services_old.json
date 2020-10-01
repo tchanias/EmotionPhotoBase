@@ -15,14 +15,6 @@
       },
       "oauth_client": [
         {
-          "client_id": "629406086382-kdf2ehappnm9oqglchmjr0encu089tc4.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.emotionphotobase",
-            "certificate_hash": "4f530a71cc640e7731fdd37b4d6f1e14e15dbf1b"
-          }
-        },
-        {
           "client_id": "629406086382-6da5e67jueq9ku4jp18l4492plcnobmq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

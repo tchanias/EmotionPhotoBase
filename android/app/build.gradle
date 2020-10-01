@@ -153,6 +153,14 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+          release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
+          }
     }
     buildTypes {
         debug {
@@ -164,6 +172,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
@@ -192,18 +201,15 @@ android {
 }
 
 dependencies {
-    implementation project(':react-native-firebase')
+    
     implementation project(':@react-native-community_async-storage')
     implementation project(':react-native-image-picker')
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0' 
     implementation(project(":react-native-google-signin"))
-    // implementation 'com.google.firebase:firebase-analytics:17.2.0'
-    // implementation 'com.google.firebase:firebase-auth:17.0.0'
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
-implementation "com.google.android.gms:play-services-base:16.1.0"
-implementation "com.google.firebase:firebase-core:16.0.9"
+    implementation "com.google.android.gms:play-services-base:16.1.0"
     implementation ("com.google.android.gms:play-services-gcm:17.0.0") {
 force = true;
 }

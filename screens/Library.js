@@ -1,6 +1,11 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {libraryViews, removeExtension, screens} from '../constants/constants';
+import {
+  libraryViews,
+  removeExtension,
+  screens,
+  formatAsPercentage,
+} from '../constants/constants';
 import _ from 'lodash';
 import Tiles from '../Components/Tiles';
 import {firebaseAuth} from '../constants/firebaseConfig';
@@ -14,15 +19,34 @@ import GalleryManager from 'react-native-gallery-manager';
 // import Swiper from 'react-native-swiper';
 // import SwipeableViews from 'react-swipeable-views-native';
 import Swiper from '../Components/Swiper';
-import {Container, Tab, Tabs, TabHeading, Icon} from 'native-base';
+import {
+  Container,
+  Tab,
+  Tabs,
+  TabHeading,
+  Icon,
+  Fab,
+  Header,
+  Button as NBButton,
+  Drawer,
+  Badge,
+} from 'native-base';
 import HeaderLeft from '../Components/UI/HeaderLeft';
 import HeaderRight from '../Components/UI/HeaderRight';
 import StatsModal from '../Components/UI/StatsModal';
 import EmotionAnalysis from '../Components/EmotionAnalysis';
+import {Filters} from '../constants/filters';
+import SideBar from '../Components/UI/SideBar';
+import NoImages from '../Components/NoImages';
 
 const AccessTitle = 'EmotionPhotoBase needs authorization.';
 const AccessMessage =
   'EmotionPhotoBase requires authorization to access your files.';
+
+const emotionMinimumPercentage = 0.2;
+const appearanceMinimumPercentage = 0.5;
+const otherMinimumPercentage = 0.5;
+const facialHairLength = 0.2;
 
 export default class Library extends React.Component {
   constructor(props) {
@@ -44,7 +68,11 @@ export default class Library extends React.Component {
       tab: libraryViews.tiles.position,
       withDataOnly: true,
       imagesWithData: [],
+      filters: Filters.Default,
+      filtersOpen: false,
+      // filtered: false,
     };
+    this.drawer = React.createRef();
   }
 
   componentDidMount() {
@@ -182,6 +210,7 @@ export default class Library extends React.Component {
             let accessories = face.accessories;
             let moustache = face.moustache;
             let beard = face.beard;
+            let makeup = face.makeup;
             let sideburns = face.sideburns;
             return (
               <EmotionAnalysis
@@ -199,6 +228,7 @@ export default class Library extends React.Component {
                 beard={beard}
                 bald={bald}
                 sideburns={sideburns}
+                makeup={makeup}
                 facesLength={img.data.faces && img.data.faces.length}
               />
             );
@@ -251,12 +281,13 @@ export default class Library extends React.Component {
 
               return (
                 <View key={index} style={box}>
+                  <Text style={attr}>Face #{index + 1}</Text>
                   <View style={style} />
                   <Text style={attr}>
                     {face.gender}, {face.age} y/o
                   </Text>
                   <Text style={attr}>
-                    {emotion}: {emotionPercentage}
+                    {emotion}: {formatAsPercentage(emotionPercentage)}
                   </Text>
                 </View>
               );
@@ -293,9 +324,8 @@ export default class Library extends React.Component {
     return gallery;
   };
 
-  onSwipeRight() {
-    const {images, withDataOnly, imagesWithData, activeImage} = this.state;
-    let collection = withDataOnly ? imagesWithData : images;
+  onSwipeRight(collection) {
+    const {activeImage} = this.state;
     if (collection && collection.length > 0) {
       let newImage = activeImage - 1;
       const lastImage = collection.length - 1;
@@ -307,9 +337,9 @@ export default class Library extends React.Component {
     }
   }
 
-  onSwipeLeft() {
-    const {images, withDataOnly, imagesWithData, activeImage} = this.state;
-    let collection = withDataOnly ? imagesWithData : images;
+  onSwipeLeft(collection) {
+    const {activeImage} = this.state;
+
     if (collection && collection.length > 0) {
       let newImage = activeImage + 1;
       const imagesLength = collection.length;
@@ -354,7 +384,137 @@ export default class Library extends React.Component {
       });
       return imagesForReturn;
     } else {
-      return images;
+      return [];
+    }
+  };
+
+  toggleFilters = () => {
+    this.openDrawer();
+    this.setState({filtersOpen: true});
+  };
+
+  closeDrawer = () => {
+    this.drawer._root.close();
+    this.setState({filtersOpen: false});
+  };
+  openDrawer = () => {
+    this.drawer._root.open();
+  };
+
+  setFilters = filters => {
+    this.setState({filters: filters});
+  };
+  resetFilters = () => {
+    this.closeDrawer();
+    this.setState({filters: Filters.Default});
+  };
+
+  accessoryExists = (accessory, data) => {
+    if (
+      !data.accessories ||
+      !Array.isArray(data.accessories) ||
+      data.accessories.length === 0
+    ) {
+      return false;
+    }
+    let filterForAccessory = data.accessories.filter(
+      acc => acc.type === accessory && acc.confidence >= otherMinimumPercentage,
+    );
+    if (filterForAccessory && filterForAccessory.length > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  imageSatisfiesFilters = image => {
+    const {filters, storedImages} = this.state;
+    let shouldReturnImage = false;
+    let findImageInStorage = storedImages.map(img => {
+      if (img.id === removeExtension(image.filename)) {
+        // console.log('image data: ', img);
+        if (img && img.data && img.data.faces && img.data.faces.length > 0) {
+          let filtersSatisfied = img.data.faces.some(face => {
+            // let facePassedFilterTest = true;
+            const {
+              anger,
+              contempt,
+              disgust,
+              fear,
+              happiness,
+              neutral,
+              sadness,
+              surprise,
+            } = face.emotions;
+            const {
+              age,
+              bald,
+              beard,
+              gender,
+              hairColor,
+              hairColorConfidence,
+              accessories,
+              moustache,
+              sideburns,
+              smile,
+            } = face;
+
+            const {headWear, glasses, mask} = filters.accessories;
+            // let  lipMakeup , eyeMakeup  = null;
+            // if()
+
+            let lipMakeup,
+              eyeMakeup = false;
+            if (face.makeup) {
+              lipMakeup = face.makeup.lipMakeup;
+              eyeMakeup = face.makeup.eyeMakeup;
+            }
+            const {eyemakeup, lipmakeup} = filters.makeup;
+            return (
+              (!filters.anger || anger > emotionMinimumPercentage) &&
+              (!filters.contempt || contempt > emotionMinimumPercentage) &&
+              (!filters.disgust || disgust > emotionMinimumPercentage) &&
+              (!filters.fear || fear > emotionMinimumPercentage) &&
+              (!filters.happiness || happiness > emotionMinimumPercentage) &&
+              (!filters.neutral || neutral > emotionMinimumPercentage) &&
+              (!filters.sadness || sadness > emotionMinimumPercentage) &&
+              (!filters.surprise || surprise > emotionMinimumPercentage) &&
+              (!filters.bald || bald > appearanceMinimumPercentage) &&
+              (!filters.beard || beard > facialHairLength) &&
+              (!filters.moustache || moustache > facialHairLength) &&
+              (!filters.sideburns || sideburns > facialHairLength) &&
+              (!filters.hairColor ||
+                (hairColor === filters.hairColor &&
+                  hairColorConfidence > appearanceMinimumPercentage)) &&
+              (!eyemakeup || eyeMakeup) &&
+              (!lipmakeup || lipMakeup) &&
+              (!filters.gender || filters.gender === gender) &&
+              ((filters.age[0] === 0 && filters.age[1] === 100) ||
+                (age >= filters.age[0] && age <= filters.age[1])) &&
+              (!filters.smile || smile > otherMinimumPercentage) &&
+              (!headWear ||
+                this.accessoryExists(Filters.Names.headWear, face)) &&
+              (!glasses || this.accessoryExists(Filters.Names.glasses, face)) &&
+              (!mask || this.accessoryExists(Filters.Names.mask, face))
+            );
+          });
+          shouldReturnImage = filtersSatisfied;
+          // console.log('return image? ', shouldReturnImage, img);
+          return shouldReturnImage;
+        }
+      }
+    });
+    return shouldReturnImage;
+  };
+
+  filterImageCollection = (collection, isFiltered) => {
+    if (isFiltered) {
+      let newCollection = collection.filter(image =>
+        this.imageSatisfiesFilters(image),
+      );
+      return newCollection;
+    } else {
+      return collection;
     }
   };
 
@@ -368,84 +528,152 @@ export default class Library extends React.Component {
       withDataOnly,
       imagesWithData,
       modalVisible,
+      filters,
+      filtersOpen,
     } = this.state;
-
-    let collection = withDataOnly ? imagesWithData : images;
+    const isFiltered = !_.isEqual(filters, Filters.Default);
+    let collection = withDataOnly
+      ? this.filterImageCollection(imagesWithData, isFiltered)
+      : images;
     return (
-      <View>
-        <Spinner
-          visible={loading}
-          textContent={'Loading image data...'}
-          textStyle={{color: sharedStyles.textColor}}
-        />
-        {collection && collection[activeImage] && (
-          <StatsModal
-            modalVisible={modalVisible}
-            setModalVisible={value => this.setModalVisible(value)}
-            data={this.prepareModalData(
-              removeExtension(collection[activeImage].filename),
-            )}
+      <Drawer
+        ref={ref => {
+          this.drawer = ref;
+        }}
+        content={
+          <SideBar
+            filters={filters}
+            isFiltered={isFiltered}
+            setFilters={newFilters => this.setFilters(newFilters)}
+            resetFilters={() => this.resetFilters()}
           />
-        )}
-        <View style={sharedStyles.libraryWrapper}>
-          {!loading && collection.length > 0 && (
-            <Container>
-              <Tabs
-                page={tab}
-                onChangeTab={this.onChangeTab}
-                locked={tab === libraryViews.swiper.position}>
-                <Tab
-                  heading={
-                    <TabHeading style={styles.tab}>
-                      <Icon name="grid-outline" />
-                    </TabHeading>
-                  }>
-                  <View style={sharedStyles.tilesWrapper}>
-                    <Tiles
-                      images={collection}
-                      chooseImage={index => this.chooseImage(index)}
-                    />
-                  </View>
-                </Tab>
-                <Tab
-                  heading={
-                    <TabHeading style={styles.tab}>
-                      <Icon name="copy-outline" />
-                    </TabHeading>
-                  }>
-                  <View style={sharedStyles.sliderWrapper}>
-                    <Swiper
-                      images={collection}
-                      current={activeImage}
-                      onSwipeLeft={() => this.onSwipeLeft()}
-                      onSwipeRight={() => this.onSwipeRight()}
-                      renderFaceBoxes={data => this.renderFaceBoxes(data)}
-                    />
-                    {collection && collection[activeImage] && (
-                      <View style={styles.statsButtonContainer}>
-                        <Button
-                          buttonStyle={sharedStyles.circleButtons}
-                          onPress={() => this.setModalVisible(true)}
-                          icon={
-                            <Icon
-                              name="bar-chart-outline"
-                              style={sharedStyles.circleButtonsIcon}
-                            />
-                          }
-                          title="View Stats"
+        }
+        onClose={() => this.closeDrawer()}>
+        <View>
+          <Spinner
+            visible={loading}
+            textContent={'Loading image data...'}
+            textStyle={{color: sharedStyles.textColor}}
+          />
+          {collection && collection[activeImage] && (
+            <StatsModal
+              modalVisible={modalVisible}
+              setModalVisible={value => this.setModalVisible(value)}
+              data={this.prepareModalData(
+                removeExtension(collection[activeImage].filename),
+              )}
+            />
+          )}
+
+          <View style={sharedStyles.libraryWrapper}>
+            {!loading && (
+              <Container>
+                <Tabs
+                  page={tab}
+                  onChangeTab={this.onChangeTab}
+                  locked={tab === libraryViews.swiper.position}>
+                  <Tab
+                    heading={
+                      <TabHeading style={styles.tab}>
+                        <Icon name="grid-outline" />
+                      </TabHeading>
+                    }>
+                    {collection && collection.length > 0 ? (
+                      <View style={sharedStyles.tilesWrapper}>
+                        <Tiles
+                          images={collection}
+                          chooseImage={index => this.chooseImage(index)}
                         />
                       </View>
+                    ) : (
+                      <NoImages isFiltered={isFiltered} />
                     )}
-                  </View>
-                </Tab>
-                {/* <Tab heading={ <TabHeading><Icon name="apps" /></TabHeading>}>
+                  </Tab>
+                  <Tab
+                    heading={
+                      <TabHeading style={styles.tab}>
+                        <Icon name="copy-outline" />
+                      </TabHeading>
+                    }>
+                    {collection && collection.length > 0 ? (
+                      <View style={sharedStyles.sliderWrapper}>
+                        <Swiper
+                          images={collection}
+                          current={activeImage}
+                          onSwipeLeft={() => this.onSwipeLeft(collection)}
+                          onSwipeRight={() => this.onSwipeRight(collection)}
+                          renderFaceBoxes={data => this.renderFaceBoxes(data)}
+                        />
+                        {collection && collection[activeImage] && (
+                          <View style={styles.statsButtonContainer}>
+                            <Button
+                              buttonStyle={sharedStyles.circleButtons}
+                              onPress={() => this.setModalVisible(true)}
+                              icon={
+                                <Icon
+                                  name="bar-chart-outline"
+                                  style={sharedStyles.circleButtonsIcon}
+                                />
+                              }
+                              title="View Stats"
+                            />
+                          </View>
+                        )}
+                      </View>
+                    ) : (
+                      <NoImages isFiltered={isFiltered} />
+                    )}
+                  </Tab>
+                  {/* <Tab heading={ <TabHeading><Icon name="apps" /></TabHeading>}>
                 <Tab3 />
               </Tab> */}
-              </Tabs>
-            </Container>
-          )}
+                </Tabs>
+                {/* <Container> */}
+                {/* <View style={{flex: 1}}> */}
+                {/* <Header /> */}
+                {/* <View>
+                  {isFiltered && (
+                    <Badge danger style={styles.badge}>
+                      <Text>!</Text>
+                    </Badge>
+                  )} */}
+
+                <View
+                // style={{flex: 1}}
+                >
+                  {isFiltered && (
+                    <View
+                      pointerEvents={'none'}
+                      style={{
+                        position: 'absolute',
+                        elevation: 40,
+                        bottom: 85,
+                        right: 18,
+                        zIndex: 1,
+                      }}>
+                      <Badge danger>
+                        <Text>!</Text>
+                      </Badge>
+                    </View>
+                  )}
+                  <Fab
+                    active={filtersOpen}
+                    direction="up"
+                    containerStyle={{}}
+                    style={{backgroundColor: '#009671', bottom: 30}}
+                    position="bottomRight"
+                    onPress={() => this.toggleFilters()}>
+                    <Icon
+                      name="filter-outline"
+                      style={isFiltered ? {color: 'red'} : {}}
+                    />
+                  </Fab>
+                </View>
+              </Container>
+            )}
+          </View>
         </View>
-      </View>
+      </Drawer>
     );
   }
 }
@@ -486,5 +714,10 @@ const styles = StyleSheet.create({
   },
   tab: {
     backgroundColor: '#00B386',
+  },
+  badge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
 });

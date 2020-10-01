@@ -19,9 +19,9 @@ export default function EmotionAnalysis(props) {
     beard,
     bald,
     sideburns,
+    makeup,
     facesLength,
   } = props;
-  console.log('accessories: ', accessories);
   return (
     <View style={styles.faceContainer} key={index}>
       <View>
@@ -48,11 +48,18 @@ export default function EmotionAnalysis(props) {
         <Text>Smile:{' ' + smile}</Text>
         <Text>Glasses:{' ' + glasses}</Text>
         <Text>
-          Hair Color:{' ' + hairColor}{' '}
+          Hair Color:{' ' + (hairColor || 'No hair')}{' '}
           {hairColorConfidence &&
             `- ${formatAsPercentage(hairColorConfidence)}`}
         </Text>
         <Text>Bald:{' ' + formatAsPercentage(bald)}</Text>
+        <Text>
+          Makeup:
+          {' ' +
+            `${makeup && makeup.eyeMakeup ? 'Eyes ' : ''}` +
+            `${makeup && makeup.eyeMakeup && makeup.lipMakeup ? ', ' : ''}` +
+            `${makeup && makeup.lipMakeup ? 'Lips' : ''}`}
+        </Text>
         <Text>
           Accessories:{' '}
           {accessories &&
@@ -62,7 +69,7 @@ export default function EmotionAnalysis(props) {
                 return ` ${acc.type} ${' - ' +
                   formatAsPercentage(acc.confidence)}`;
               })
-            : accessories}
+            : 'No Accessories'}
         </Text>
       </View>
       <View style={styles.listColumn}>

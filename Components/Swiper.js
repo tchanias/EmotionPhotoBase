@@ -13,7 +13,6 @@ const swipeConfig = {
 const screenWidth = Dimensions.get('window').width;
 export default function Swiper(props) {
   const {images, current, onSwipeLeft, onSwipeRight, renderFaceBoxes} = props;
-  console.log('screenWidth: ', screenWidth);
   return (
     <GestureRecognizer
       onSwipeLeft={() => onSwipeLeft()}

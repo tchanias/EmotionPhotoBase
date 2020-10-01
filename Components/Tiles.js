@@ -21,7 +21,6 @@ export default function Tiles(props) {
 
   const tileDimensions = calcTileDimensions(width, tilesPerRow);
   const mapImagesToTiles = function() {
-    console.log('create tiles... ', tileDimensions, images);
     return (
       images &&
       images.length > 0 &&
