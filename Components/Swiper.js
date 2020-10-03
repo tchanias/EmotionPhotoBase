@@ -1,14 +1,14 @@
 import React from 'react';
 import {ImageBackground, Dimensions} from 'react-native';
-import {View, Text} from 'native-base';
+import {View, Text, Icon} from 'native-base';
 import {removeExtension} from '../constants/constants';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import {sharedStyles} from '../sharedStyles';
 
 const swipeConfig = {
   velocityThreshold: 0.1,
-  directionalOffsetThreshold: 30,
-  gestureIsClickThreshold: 2,
+  directionalOffsetThreshold: 80,
+  gestureIsClickThreshold: 0.1,
 };
 const screenWidth = Dimensions.get('window').width;
 export default function Swiper(props) {
@@ -44,7 +44,7 @@ export default function Swiper(props) {
               style={[
                 sharedStyles.subTitleText,
                 styles.counter,
-              ]}>{`Image: ${current + 1} out of ${images.length}`}</Text>
+              ]}>{`Image: ${current + 1} of ${images.length}`}</Text>
             {/* </View> */}
             {renderFaceBoxes(removeExtension(images[current].filename))}
           </ImageBackground>
@@ -72,6 +72,7 @@ const styles = {
     maxWidth: screenWidth,
     // maxHeight: 440,
   },
+
   counter: {
     color: '#fff',
     position: 'absolute',

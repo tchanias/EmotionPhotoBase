@@ -402,11 +402,11 @@ export default class Library extends React.Component {
   };
 
   setFilters = filters => {
-    this.setState({filters: filters});
+    this.setState({filters: filters, activeImage: 0});
   };
   resetFilters = () => {
     this.closeDrawer();
-    this.setState({filters: Filters.Default});
+    this.setState({filters: Filters.Default, activeImage: 0});
   };
 
   accessoryExists = (accessory, data) => {

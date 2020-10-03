@@ -3,6 +3,7 @@ import {View, Text} from 'react-native';
 import {formatAsPercentage} from '../constants/constants';
 import {sharedStyles} from '../sharedStyles';
 import {Divider} from 'react-native-elements';
+import capitalize from 'lodash/capitalize';
 
 export default function EmotionAnalysis(props) {
   const {
@@ -22,6 +23,31 @@ export default function EmotionAnalysis(props) {
     makeup,
     facesLength,
   } = props;
+
+  const getMakeupResult = function() {
+    const eyeMakeup = makeup && makeup.eyeMakeup;
+    const lipMakeup = makeup && makeup.lipMakeup;
+    return makeup && (eyeMakeup || lipMakeup)
+      ? eyeMakeup && !lipMakeup
+        ? 'Eye Makeup'
+        : !eyeMakeup && lipMakeup
+        ? 'Lip Makeup'
+        : eyeMakeup && lipMakeup
+        ? 'Eye and Lip Makeup'
+        : 'No Makeup'
+      : 'No Makeup';
+  };
+
+  const glassTypeMap = {
+    NoGlasses: 'No Glasses',
+    ReadingGlasses: 'Reading Glasses',
+    Sunglasses: 'Sunglasses',
+    SwimmingGoggles: 'Swimming Goggles',
+  };
+
+  const glassesString = glasses && glassTypeMap[glasses];
+  console.log(glassesString);
+
   return (
     <View style={styles.faceContainer} key={index}>
       <View>
@@ -42,23 +68,28 @@ export default function EmotionAnalysis(props) {
         <Text>Surprise:{' ' + formatAsPercentage(emotions['surprise'])}</Text>
       </View>
       <View style={styles.listColumn}>
-        <Text style={sharedStyles.subTitleText}>Misc</Text>
-        <Text>Gender:{' ' + gender}</Text>
-        <Text>Age:{' ' + age}</Text>
-        <Text>Smile:{' ' + smile}</Text>
-        <Text>Glasses:{' ' + glasses}</Text>
+        <Text style={sharedStyles.subTitleText}>Appearance</Text>
+        <Text>Bald:{' ' + formatAsPercentage(bald)}</Text>
+        <Text>Moustache:{' ' + formatAsPercentage(moustache)}</Text>
+        <Text>Beard:{' ' + formatAsPercentage(beard)}</Text>
+        <Text>Sideburns:{' ' + formatAsPercentage(sideburns)}</Text>
         <Text>
-          Hair Color:{' ' + (hairColor || 'No hair')}{' '}
+          Makeup:
+          {' ' + getMakeupResult()}
+        </Text>
+        <Text>
+          Hair Color:{' ' + (capitalize(hairColor) || 'No hair')}{' '}
           {hairColorConfidence &&
             `- ${formatAsPercentage(hairColorConfidence)}`}
         </Text>
-        <Text>Bald:{' ' + formatAsPercentage(bald)}</Text>
+      </View>
+      <View style={styles.listColumn}>
+        <Text style={sharedStyles.subTitleText}>Other Results</Text>
+        <Text>Gender:{' ' + capitalize(gender)}</Text>
+        <Text>Age:{' ' + age}</Text>
+        <Text>Smile:{' ' + formatAsPercentage(smile)}</Text>
         <Text>
-          Makeup:
-          {' ' +
-            `${makeup && makeup.eyeMakeup ? 'Eyes ' : ''}` +
-            `${makeup && makeup.eyeMakeup && makeup.lipMakeup ? ', ' : ''}` +
-            `${makeup && makeup.lipMakeup ? 'Lips' : ''}`}
+          Glasses: {' ' + glassesString ? glassesString : 'No Glasses'}
         </Text>
         <Text>
           Accessories:{' '}
@@ -66,17 +97,11 @@ export default function EmotionAnalysis(props) {
           accessories !== 'No Accessories' &&
           accessories.length > 0
             ? accessories.map((acc, index) => {
-                return ` ${acc.type} ${' - ' +
+                return ` ${capitalize(acc.type)} ${' - ' +
                   formatAsPercentage(acc.confidence)}`;
               })
             : 'No Accessories'}
         </Text>
-      </View>
-      <View style={styles.listColumn}>
-        <Text style={sharedStyles.subTitleText}>Facial Hair</Text>
-        <Text>Moustache:{' ' + formatAsPercentage(moustache)}</Text>
-        <Text>Beard:{' ' + formatAsPercentage(beard)}</Text>
-        <Text>Sideburns:{' ' + formatAsPercentage(sideburns)}</Text>
       </View>
       {parseInt(index) + 1 < facesLength && <Divider style={styles.divider} />}
     </View>
