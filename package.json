@@ -10,6 +10,7 @@
   "dependencies": {
     "@ptomasroos/react-native-multi-slider": "^2.2.2",
     "@react-native-community/async-storage": "^1.6.1",
+    "@react-native-community/cameraroll": "^4.0.1",
     "@react-native-community/google-signin": "^4.0.3",
     "@react-native-community/picker": "^1.8.0",
     "@react-native-firebase/app": "^6.2.0",
@@ -20,6 +21,8 @@
     "native-base": "^2.13.14",
     "react": "16.9.0",
     "react-native": "0.61.5",
+    "react-native-base64": "^0.1.0",
+    "react-native-camera": "^3.40.0",
     "react-native-elements": "^2.3.2",
     "react-native-gallery-manager": "^1.0.9",
     "react-native-gesture-handler": "^1.8.0",

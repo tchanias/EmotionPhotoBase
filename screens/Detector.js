@@ -1,5 +1,13 @@
 import React from 'react';
-import {StyleSheet, Text, View, ImageBackground, Alert} from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ImageBackground,
+  Alert,
+  PermissionsAndroid,
+  Platform,
+} from 'react-native';
 import Logo from '../Components/UI/Logo';
 import {
   apiUrl,
@@ -16,9 +24,11 @@ import {sharedStyles, screenWidth} from '../sharedStyles';
 import {Button} from 'react-native-elements';
 import HeaderLeft from '../Components/UI/HeaderLeft';
 import HeaderRight from '../Components/UI/HeaderRight';
-import {Icon} from 'native-base';
+import {Container, Icon, Fab} from 'native-base';
 import StatsModal from '../Components/UI/StatsModal';
 import EmotionAnalysis from '../Components/EmotionAnalysis';
+import CameraRoll from '@react-native-community/cameraroll';
+import {TouchableOpacity} from 'react-native-gesture-handler';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -50,7 +60,41 @@ export class Detector extends React.Component {
       faces: [],
       loading: false,
       imageDimensions: null,
+      navigated: false,
+      bounds: false,
     };
+  }
+
+  // componentDidMount() {
+  //   console.log('mounted: ', this.props);
+  //   const {navigation} = this.props;
+  //   if (
+  //     navigation &&
+  //     navigation.state &&
+  //     navigation.state.params &&
+  //     navigation.state.params.source
+  //   ) {
+  //     console.log(
+  //       'mounted with data?',
+  //       this.props.navigation.state.params.source,
+  //     );
+  //     this.pickFromLiveView(this.props.navigation.state.params.source);
+  //   }
+  // }
+
+  componentDidUpdate() {
+    if (!this.state.navigated) {
+      const {navigation} = this.props;
+      if (
+        navigation &&
+        navigation.state &&
+        navigation.state.params &&
+        navigation.state.params.source
+      ) {
+        this.pickFromLiveView(this.props.navigation.state.params.source);
+        navigation.setParams({source: null});
+      }
+    }
   }
 
   componentWillUnmount() {
@@ -75,6 +119,72 @@ export class Detector extends React.Component {
       headerTitle: <Logo />,
       headerRight: <HeaderRight navigation={navigation} />,
     };
+  };
+
+  hasAndroidPermission = async () => {
+    const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+
+    const hasPermission = await PermissionsAndroid.check(permission);
+    if (hasPermission) {
+      return true;
+    }
+
+    const status = await PermissionsAndroid.request(permission);
+    return status === 'granted';
+  };
+  savePicture = async tag => {
+    if (Platform.OS === 'android' && !(await this.hasAndroidPermission())) {
+      return;
+    }
+
+    return CameraRoll.save(tag, {type: 'photo', album: 'EmotionPhotoBase'});
+  };
+
+  pickFromLiveView = async params => {
+    if (params && params.uri) {
+      console.log('captured image: ', params);
+
+      const savedimage = await this.savePicture(params.uri);
+      const files = await CameraRoll.getPhotos({
+        first: 1,
+        include: ['filename'],
+      });
+      let filename =
+        files &&
+        files.edges &&
+        files.edges.length &&
+        files.edges[0].node &&
+        files.edges[0].node.image &&
+        files.edges[0].node.image.uri;
+      let source = {uri: filename ? filename : params.uri};
+      this.setState(
+        {
+          navigated: true,
+          has_photo: true,
+          photo: source,
+          photo_data: params.data,
+          bounds: params.faces,
+          imageDimensions: {
+            // width: params.width > screenWidth ? screenWidth : params.width,
+            // height:
+            //   params.width > screenWidth
+            //     ? (params.height * screenWidth) / params.width <= 440
+            //       ? (params.height * screenWidth) / params.width
+            //       : 440
+            //     : params.height,
+            width: screenWidth,
+            height: 440,
+            // width: params.width,
+            // height: params.height,
+            maxWidth: screenWidth,
+            maxHeight: 440,
+          },
+        },
+        () => {
+          this.detectFaces();
+        },
+      );
+    }
   };
 
   saveToFirebase = () => {
@@ -241,103 +351,33 @@ export class Detector extends React.Component {
     }
   };
 
-  render() {
-    const {
-      imageDimensions,
-      modalVisible,
-      loading,
-      photo,
-      face_data,
-    } = this.state;
-    return (
-      <View
-      // style={sharedStyles.detectorContainer}
-      >
-        <Spinner
-          visible={loading}
-          textContent={'Loading image data...'}
-          textStyle={{color: sharedStyles.textColor}}
-        />
-
-        <StatsModal
-          modalVisible={modalVisible}
-          setModalVisible={value => this.setModalVisible(value)}
-          data={this.mapJsonData()}
-        />
-        <View
-          style={
-            !photo
-              ? sharedStyles.detectorPhotoStyle
-              : sharedStyles.detectorPhotoPickedStyle
-          }>
-          <ImageBackground
-            style={imageDimensions || {width: '100%', height: '100%'}}
-            source={photo || require('../placeholder.png')}
-            resizeMode={'contain'}>
-            {this._renderFaceBoxes()}
-          </ImageBackground>
-        </View>
-        <View style={styles.ButtonContainer}>
-          {!loading && (
-            <Button
-              buttonStyle={sharedStyles.circleButtons}
-              onPress={this.pickImage}
-              icon={
-                <Icon
-                  name="image-outline"
-                  style={sharedStyles.circleButtonsIcon}
-                />
-              }
-              title={face_data ? 'Change Photo' : 'Pick Photo'}
-            />
-          )}
-          {face_data && (
-            <Button
-              buttonStyle={sharedStyles.circleButtons}
-              onPress={() => this.openModal()}
-              icon={
-                <Icon
-                  name="bar-chart-outline"
-                  style={sharedStyles.circleButtonsIcon}
-                />
-              }
-              title="View Stats"
-            />
-          )}
-          {face_data && (
-            <Button
-              buttonStyle={sharedStyles.circleButtons}
-              icon={
-                <Icon
-                  name="save-outline"
-                  style={sharedStyles.circleButtonsIcon}
-                />
-              }
-              title="Save Photo"
-              onPress={() => this.saveToFirebase()}
-            />
-          )}
-          <View />
-        </View>
-      </View>
+  openVideo = () => {
+    this.setState(
+      {
+        has_photo: false,
+        photo: null,
+        face_data: null,
+        modalVisible: false,
+        faces: [],
+        loading: false,
+        imageDimensions: null,
+        navigated: false,
+        bounds: false,
+      },
+      () => this.props.navigation.navigate('Video'),
     );
-  }
+  };
 
   pickImage = () => {
     ImagePicker.showImagePicker(image_picker_options, response => {
       if (response.error) {
-        Alert.alert('Error getting the image. Please try again.');
+        Alert.alert('Application error. Please try again.');
       } else {
         if (response.uri) {
           let source = {uri: response.uri};
-
+          console.log('picked image: ', response);
           this.setState(
             {
-              photo_style: {
-                position: 'relative',
-                width: response.width,
-                height: response.height,
-              },
               has_photo: true,
               photo: source,
               photo_data: response.data,
@@ -373,6 +413,7 @@ export class Detector extends React.Component {
           return res.json();
         })
         .then(json => {
+          console.log('response: ', json);
           if (json.length) {
             this.setState({
               face_data: json,
@@ -408,24 +449,38 @@ export class Detector extends React.Component {
   }
 
   _renderFaceBoxes() {
+    console.log('render face box: ', this.state.face_data, this.state.bounds);
     if (this.state.face_data) {
+      const {bounds} = this.state;
       let views = this.state.face_data.map((face, index) => {
-        let box = {
-          position: 'absolute',
-          top: face.faceRectangle.top,
-          left: face.faceRectangle.left,
-        };
-
-        const [emotion, emotionPercentage] = this.findDominantEmotion(
-          face.faceAttributes.emotion,
-        );
-
         let style = {
           width: face.faceRectangle.width,
           height: face.faceRectangle.height,
           borderWidth: 2,
           borderColor: '#fff',
         };
+        let box = {
+          position: 'absolute',
+          top: face.faceRectangle.top,
+          left: face.faceRectangle.left,
+        };
+        if (bounds && bounds.length) {
+          style = {
+            width: bounds[index].bounds.size.width,
+            height: bounds[index].bounds.size.height,
+            borderWidth: 2,
+            borderColor: '#fff',
+          };
+          box = {
+            position: 'absolute',
+            top: bounds[index].bounds.origin.y,
+            left: bounds[index].bounds.origin.x,
+          };
+        }
+
+        const [emotion, emotionPercentage] = this.findDominantEmotion(
+          face.faceAttributes.emotion,
+        );
 
         let attr = {
           color: '#fff',
@@ -447,6 +502,98 @@ export class Detector extends React.Component {
 
       return <View>{views}</View>;
     }
+  }
+
+  render() {
+    const {
+      imageDimensions,
+      modalVisible,
+      loading,
+      photo,
+      face_data,
+    } = this.state;
+    return (
+      <Container>
+        <View
+        // style={sharedStyles.detectorContainer}
+        >
+          <Spinner
+            visible={loading}
+            textContent={'Loading image data...'}
+            textStyle={{color: sharedStyles.textColor}}
+          />
+
+          <StatsModal
+            modalVisible={modalVisible}
+            setModalVisible={value => this.setModalVisible(value)}
+            data={this.mapJsonData()}
+          />
+          <View
+            style={
+              !photo
+                ? sharedStyles.detectorPhotoStyle
+                : sharedStyles.detectorPhotoPickedStyle
+            }>
+            <ImageBackground
+              style={imageDimensions || {width: '100%', height: '100%'}}
+              source={photo || require('../placeholder.png')}
+              resizeMode={'contain'}>
+              {this._renderFaceBoxes()}
+            </ImageBackground>
+          </View>
+          <View style={styles.ButtonContainer}>
+            {!loading && (
+              <Button
+                buttonStyle={sharedStyles.circleButtons}
+                onPress={this.pickImage}
+                icon={
+                  <Icon
+                    name="image-outline"
+                    style={sharedStyles.circleButtonsIcon}
+                  />
+                }
+                title={face_data ? 'Change Photo' : 'Pick Photo'}
+              />
+            )}
+            {face_data && (
+              <Button
+                buttonStyle={sharedStyles.circleButtons}
+                onPress={() => this.openModal()}
+                icon={
+                  <Icon
+                    name="bar-chart-outline"
+                    style={sharedStyles.circleButtonsIcon}
+                  />
+                }
+                title="View Stats"
+              />
+            )}
+            {face_data && (
+              <Button
+                buttonStyle={sharedStyles.circleButtons}
+                icon={
+                  <Icon
+                    name="save-outline"
+                    style={sharedStyles.circleButtonsIcon}
+                  />
+                }
+                title="Save Photo"
+                onPress={() => this.saveToFirebase()}
+              />
+            )}
+            <View />
+          </View>
+        </View>
+        <Fab
+          direction="up"
+          containerStyle={{}}
+          style={{backgroundColor: '#009671', bottom: 30}}
+          position="bottomRight"
+          onPress={() => this.openVideo()}>
+          <Icon name="videocam-outline" />
+        </Fab>
+      </Container>
+    );
   }
 }
 

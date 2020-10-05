@@ -117,6 +117,7 @@ export default class Library extends React.Component {
                 firebaseImages,
                 response.assets,
               );
+              // console.log('get images: ', imagesWithData, response.assets);
               this.setState({
                 images: response.assets,
                 gallery: gallery,
@@ -154,6 +155,7 @@ export default class Library extends React.Component {
       .catch(function(error) {
         console.log('Error getting document:', error);
       });
+    // console.log('firebase: ', imageData);
     this.setState({
       storedImages: imageData,
       firebaseLoaded: imageData && imageData.length > 0,
@@ -361,7 +363,9 @@ export default class Library extends React.Component {
   };
 
   isImageStoredInFirebase = (storedImages, image) => {
-    return storedImages.some(img => img.id === image);
+    return storedImages.some(img => {
+      return img.id === image;
+    });
   };
 
   getImagesWithData = (storedImages, images) => {
@@ -535,6 +539,7 @@ export default class Library extends React.Component {
     let collection = withDataOnly
       ? this.filterImageCollection(imagesWithData, isFiltered)
       : images;
+
     return (
       <Drawer
         ref={ref => {

@@ -17,7 +17,6 @@ export default function HeaderRight(props) {
     await firebaseAuth
       .signOut()
       .then(() => {
-        Alert.alert('', 'inside then');
         navigation.navigate('AuthLoading');
       })
       .catch(function(error) {

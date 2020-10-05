@@ -27,6 +27,8 @@ export default function Swiper(props) {
             {
               width: images[current].width,
               height: images[current].height,
+              maxWidth: screenWidth,
+              maxHeight: 440,
             },
           ]}>
           <ImageBackground
@@ -35,6 +37,8 @@ export default function Swiper(props) {
               {
                 width: images[current].width,
                 height: images[current].height,
+                maxWidth: screenWidth,
+                maxHeight: 440,
               },
             ]}
             source={{uri: images[current].uri}}
@@ -57,11 +61,12 @@ export default function Swiper(props) {
 const styles = {
   swiper: {
     backgroundColor: '#373737',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
+    maxHeight: 440,
   },
   slide: {
-    // justifyContent: 'center',
+    justifyContent: 'flex-start',
     // alignItems: 'center',
     maxWidth: screenWidth,
     // maxHeight: 440,

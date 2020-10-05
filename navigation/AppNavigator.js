@@ -5,11 +5,13 @@ import Library from '../screens/Library';
 import Register from '../screens/Register';
 import Login from '../screens/Login';
 import Loading from '../screens/Loading';
+import Video from '../screens/Video';
 
 const AppStack = createStackNavigator(
   {
     Detector,
     Library,
+    Video,
   },
   {headerBackTitle: null, headerLayoutPreset: 'center', headerLeft: null},
 );
