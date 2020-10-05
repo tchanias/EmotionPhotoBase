@@ -1,27 +1,23 @@
 import React, {Component} from 'react';
 import {
-  AppRegistry,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Alert,
   Dimensions,
   PixelRatio,
 } from 'react-native';
 import HeaderLeft from '../Components/UI/HeaderLeft';
 import HeaderRight from '../Components/UI/HeaderRight';
-import ImagePicker from 'react-native-image-picker';
-import {screens, formatAsPercentage} from '../constants/constants';
+import {screens} from '../constants/constants';
 import Spinner from 'react-native-loading-spinner-overlay';
-import {Icon, Container, Tab, Tabs, TabHeading} from 'native-base';
+import {Icon} from 'native-base';
 import {sharedStyles} from '../sharedStyles';
 import Logo from '../Components/UI/Logo';
-import {RNCamera, FaceDetector} from 'react-native-camera';
-import {screenWidth} from '../sharedStyles';
+import {RNCamera} from 'react-native-camera';
 
 const landmarkSize = 6;
-let {width, height} = Dimensions.get('window');
+let {width} = Dimensions.get('window');
 let pictureWidth = PixelRatio.getPixelSizeForLayoutSize(width);
 const PendingView = () => (
   <View
@@ -174,6 +170,10 @@ export default class Video extends Component {
               left: position.x - landmarkSize / 2,
               top: position.y - landmarkSize / 2,
             },
+            // {
+            //   left: position.x - landmarkSize / 10,
+            //   top: position.y - landmarkSize / 10,
+            // },
           ]}
         />
       );
@@ -303,8 +303,7 @@ export default class Video extends Component {
                       <>
                         <TouchableOpacity
                           onPress={() => this.takePicture(camera)}
-                          // style={styles.capture}
-                        >
+                          style={{marginRight: 40}}>
                           {/* <Text style={{fontSize: 14}}> Record </Text> */}
                           <Icon
                             style={{fontSize: 60, color: 'white'}}
@@ -313,8 +312,7 @@ export default class Video extends Component {
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => this.setState({isSelfie: !isSelfie})}
-                          // style={styles.capture}
-                        >
+                          style={{marginLeft: 40}}>
                           {/* <Text style={{fontSize: 14}}> Record </Text> */}
                           <Icon
                             style={{fontSize: 60, color: 'white'}}
@@ -327,8 +325,7 @@ export default class Video extends Component {
                         <TouchableOpacity
                           disabled={!faces && !!fileUrl}
                           onPress={() => this.useInDetector()}
-                          // style={styles.capture}
-                        >
+                          style={{marginRight: 40}}>
                           {/* <Text style={{fontSize: 14}}> Record </Text> */}
                           <Icon
                             style={{
@@ -340,8 +337,7 @@ export default class Video extends Component {
                         </TouchableOpacity>
                         <TouchableOpacity
                           onPress={() => this.resetCapture()}
-                          // style={styles.capture}
-                        >
+                          style={{marginLeft: 40}}>
                           {/* <Text style={{fontSize: 14}}> Record </Text> */}
                           <Icon
                             style={{fontSize: 60, color: 'white'}}
@@ -411,10 +407,11 @@ const styles = StyleSheet.create({
   },
   face: {
     padding: 10,
+    paddingLeft: 0,
     borderWidth: 2,
     borderRadius: 2,
     position: 'absolute',
-    // borderColor: '#FFD700',
+    // backgroundColor: '#FFD700',
     borderColor: '#009671',
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.2)',

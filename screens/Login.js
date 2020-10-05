@@ -27,7 +27,7 @@ export default class Login extends Component {
       password: '',
       errorMessage: '',
       isSigninInProgress: false,
-      activeTab: 'login',
+      activeTab: 0,
     };
   }
 
@@ -129,7 +129,7 @@ export default class Login extends Component {
   };
 
   onChangeTab = value => {
-    console.log('tab: ', value);
+    console.log('tab: ', value.i);
     // this.setState({tab: value});
   };
 

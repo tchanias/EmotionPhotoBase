@@ -1,6 +1,6 @@
 import React from 'react';
 import {ImageBackground, Dimensions} from 'react-native';
-import {View, Text, Icon} from 'native-base';
+import {View, Text} from 'native-base';
 import {removeExtension} from '../constants/constants';
 import GestureRecognizer from 'react-native-swipe-gestures';
 import {sharedStyles} from '../sharedStyles';
@@ -12,7 +12,7 @@ const swipeConfig = {
 };
 const screenWidth = Dimensions.get('window').width;
 export default function Swiper(props) {
-  const {images, current, onSwipeLeft, onSwipeRight, renderFaceBoxes} = props;
+  const {images, current, onSwipeLeft, onSwipeRight, drawFaceFrames} = props;
   return (
     <GestureRecognizer
       onSwipeLeft={() => onSwipeLeft()}
@@ -50,7 +50,7 @@ export default function Swiper(props) {
                 styles.counter,
               ]}>{`Image: ${current + 1} of ${images.length}`}</Text>
             {/* </View> */}
-            {renderFaceBoxes(removeExtension(images[current].filename))}
+            {drawFaceFrames(removeExtension(images[current].filename))}
           </ImageBackground>
         </View>
       )}

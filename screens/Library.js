@@ -15,9 +15,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import {sharedStyles} from '../sharedStyles';
 import {Button} from 'react-native-elements';
 import GalleryManager from 'react-native-gallery-manager';
-// TODO: clear unused libraries and code
-// import Swiper from 'react-native-swiper';
-// import SwipeableViews from 'react-swipeable-views-native';
 import Swiper from '../Components/Swiper';
 import {
   Container,
@@ -26,7 +23,6 @@ import {
   TabHeading,
   Icon,
   Fab,
-  Header,
   Button as NBButton,
   Drawer,
   Badge,
@@ -253,7 +249,7 @@ export default class Library extends React.Component {
     }
   };
 
-  renderFaceBoxes(image) {
+  drawFaceFrames(image) {
     if (this.state.storedImages) {
       const {storedImages} = this.state;
       let view = storedImages.map(img => {
@@ -607,7 +603,7 @@ export default class Library extends React.Component {
                           current={activeImage}
                           onSwipeLeft={() => this.onSwipeLeft(collection)}
                           onSwipeRight={() => this.onSwipeRight(collection)}
-                          renderFaceBoxes={data => this.renderFaceBoxes(data)}
+                          drawFaceFrames={data => this.drawFaceFrames(data)}
                         />
                         {collection && collection[activeImage] && (
                           <View style={styles.statsButtonContainer}>

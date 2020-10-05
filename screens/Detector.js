@@ -28,7 +28,6 @@ import {Container, Icon, Fab} from 'native-base';
 import StatsModal from '../Components/UI/StatsModal';
 import EmotionAnalysis from '../Components/EmotionAnalysis';
 import CameraRoll from '@react-native-community/cameraroll';
-import {TouchableOpacity} from 'react-native-gesture-handler';
 
 const image_picker_options = {
   title: 'Select Photo',
@@ -181,7 +180,7 @@ export class Detector extends React.Component {
           },
         },
         () => {
-          this.detectFaces();
+          this.detectFacesInit();
         },
       );
     }
@@ -368,7 +367,7 @@ export class Detector extends React.Component {
     );
   };
 
-  pickImage = () => {
+  imagePickInit = () => {
     ImagePicker.showImagePicker(image_picker_options, response => {
       if (response.error) {
         Alert.alert('Application error. Please try again.');
@@ -389,7 +388,7 @@ export class Detector extends React.Component {
               },
             },
             () => {
-              this.detectFaces();
+              this.detectFacesInit();
             },
           );
         }
@@ -397,7 +396,7 @@ export class Detector extends React.Component {
     });
   };
 
-  detectFaces() {
+  detectFacesInit() {
     this.setState({loading: true}, () => {
       RNFetchBlob.fetch(
         'POST',
@@ -448,7 +447,7 @@ export class Detector extends React.Component {
     });
   }
 
-  _renderFaceBoxes() {
+  _drawFaceFrames() {
     console.log('render face box: ', this.state.face_data, this.state.bounds);
     if (this.state.face_data) {
       const {bounds} = this.state;
@@ -538,14 +537,14 @@ export class Detector extends React.Component {
               style={imageDimensions || {width: '100%', height: '100%'}}
               source={photo || require('../placeholder.png')}
               resizeMode={'contain'}>
-              {this._renderFaceBoxes()}
+              {this._drawFaceFrames()}
             </ImageBackground>
           </View>
           <View style={styles.ButtonContainer}>
             {!loading && (
               <Button
                 buttonStyle={sharedStyles.circleButtons}
-                onPress={this.pickImage}
+                onPress={this.imagePickInit}
                 icon={
                   <Icon
                     name="image-outline"
