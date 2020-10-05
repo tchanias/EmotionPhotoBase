@@ -1,32 +1,70 @@
+import AsyncStorage from '@react-native-community/async-storage';
 export const subKey = '2bfab510b0f54217b9b3f06cf810af12';
-export const faceApi = 'https://emotion-detector.cognitiveservices.azure.com/face/v1.0/detect';
+export const faceApi =
+  'https://emotion-detector.cognitiveservices.azure.com/face/v1.0/detect';
 // export const faceApi = 'https://westus.api.cognitive.microsoft.com/face/v1.0/detect';
-export const parameters ={
-    returnFaceId: "true",
-    returnFaceLandmarks: "false",
-    returnFaceAttributes:
-        "age,gender,headPose,smile,facialHair,glasses,emotion," +
-        "hair,makeup,occlusion,accessories,blur,exposure,noise"
-}
+export const parameters = {
+  returnFaceId: 'true',
+  returnFaceLandmarks: 'false',
+  returnFaceAttributes:
+    'age,gender,headPose,smile,facialHair,glasses,emotion,' +
+    'hair,makeup,occlusion,accessories,blur,exposure,noise',
+};
 // export const headers = {
-    // 'Accept': 'application/json',
+// 'Accept': 'application/json',
 //     "Content-Type":"application/json",
 //     "Ocp-Apim-Subscription-Key": subKey
 //     // "Subscription-Key": subKey
 // }
+export const appName = {
+  camelCase: 'emotionPhotoBase',
+  capital: 'EMOTIONPHOTOBASE',
+  directory: 'EmotionPhotoBase',
+  lowercase: 'emotionphotobase',
+};
 
 export const headers = {
-    'Accept': 'application/json',
-    "Content-Type":"application/octet-stream",
-    "Ocp-Apim-Subscription-Key": subKey
-    // "Subscription-Key": subKey
-}
+  Accept: 'application/json',
+  'Content-Type': 'application/octet-stream',
+  'Ocp-Apim-Subscription-Key': subKey,
+  // "Subscription-Key": subKey
+};
 
-export const  Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+export const oathClient =
+  '629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com';
 
+export const libraryViews = {
+  tiles: {id: 'tiles', position: 0},
+  swiper: {id: 'swiper', position: 1},
+};
 
+export const formatAsPercentage = x => `${parseFloat(x * 100).toFixed(1)}%`;
 
+export const epochToDate = function(seconds) {
+  let date = new Date(0);
+  date.setUTCSeconds(seconds);
+  return date.toLocaleString().split(',')[0];
+};
 
+export const removeExtension = function(filename) {
+  var lastDotPosition = filename.lastIndexOf('.');
+  if (lastDotPosition === -1) return filename;
+  else return filename.substr(0, lastDotPosition);
+};
+
+export const screens = {
+  Library: 'Library',
+  Detector: 'Detector',
+  Login: 'Login',
+  LogOut: 'LogOut',
+  Register: 'Register',
+};
+
+export const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+
+export const clearAsyncStorage = async () => {
+  AsyncStorage.clear();
+};
 // export function parseUrlParams(urlParams) {
 //     const joinByEquals = (pair) => pair.join('=')
 //     const params = Object.entries(urlParams).map(joinByEquals).join('&')
@@ -37,4 +75,7 @@ export const  Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 //     }
 // }
 
-export const apiUrl = faceApi +'?'+'returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age%2Cgender%2CheadPose%2Csmile%2CfacialHair%2Cglasses%2Cemotion%2Chair%2Cmakeup%2Cocclusion%2Caccessories%2Cblur%2Cexposure%2Cnoise'
+export const apiUrl =
+  faceApi +
+  '?' +
+  'returnFaceId=true&returnFaceLandmarks=false&returnFaceAttributes=age%2Cgender%2CheadPose%2Csmile%2CfacialHair%2Cglasses%2Cemotion%2Chair%2Cmakeup%2Cocclusion%2Caccessories%2Cblur%2Cexposure%2Cnoise';

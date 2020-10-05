@@ -1,0 +1,93 @@
+{
+  "project_info": {
+    "project_number": "629406086382",
+    "firebase_url": "https://emotiondetector-fa95c.firebaseio.com",
+    "project_id": "emotiondetector-fa95c",
+    "storage_bucket": "emotiondetector-fa95c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629406086382:android:e5daa09193206edbe7afff",
+        "android_client_info": {
+          "package_name": "com.emotionphotobase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629406086382-kdf2ehappnm9oqglchmjr0encu089tc4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.emotionphotobase",
+            "certificate_hash": "4f530a71cc640e7731fdd37b4d6f1e14e15dbf1b"
+          }
+        },
+        {
+          "client_id": "629406086382-6da5e67jueq9ku4jp18l4492plcnobmq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.emotionphotobase",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "629406086382-vv1v9n06d48p4o4tni278ldca6d12dpi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.emotionphotobase",
+            "certificate_hash": "7c7928402edb7763daccc55d5c928573cb685ef1"
+          }
+        },
+        {
+          "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629406086382:android:13c3c6a65bcbec53",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYF4CcZmcXjhK6JvIPdCEDwodB_VPjDvQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629406086382-s5q2gsevlu29dkmkn63ffo5nnecmttb0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

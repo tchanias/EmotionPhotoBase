@@ -8,11 +8,38 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ptomasroos/react-native-multi-slider": "^2.2.2",
+    "@react-native-community/async-storage": "^1.6.1",
+    "@react-native-community/cameraroll": "^4.0.1",
+    "@react-native-community/google-signin": "^4.0.3",
+    "@react-native-community/picker": "^1.8.0",
+    "@react-native-firebase/app": "^6.2.0",
+    "@react-native-firebase/auth": "^6.2.0",
+    "@react-native-firebase/firestore": "^6.2.0",
+    "firebase": "^6.6.0",
     "lodash": "^4.17.15",
-    "react": "16.8.6",
-    "react-native": "0.60.5",
-    "react-native-fetch-blob": "^0.10.8",
-    "react-native-image-picker": "^1.1.0"
+    "native-base": "^2.13.14",
+    "react": "16.9.0",
+    "react-native": "0.61.5",
+    "react-native-base64": "^0.1.0",
+    "react-native-camera": "^3.40.0",
+    "react-native-elements": "^2.3.2",
+    "react-native-gallery-manager": "^1.0.9",
+    "react-native-gesture-handler": "^1.8.0",
+    "react-native-image-picker": "^1.1.0",
+    "react-native-loading-spinner-overlay": "^1.0.1",
+    "react-native-picker-select": "^8.0.0",
+    "react-native-reanimated": "^1.13.1",
+    "react-native-screens": "^2.11.0",
+    "react-native-swipe-gestures": "^1.0.5",
+    "react-native-swiper": "^1.6.0-rc.3",
+    "react-native-vector-icons": "^7.0.0",
+    "react-navigation": "^4.0.2",
+    "react-navigation-stack": "^1.5.4",
+    "react-swipeable-views-core": "^0.13.7",
+    "react-swipeable-views-native": "^0.13.2",
+    "react-swipeable-views-utils": "^0.13.9",
+    "rn-fetch-blob": "^0.10.16"
   },
   "devDependencies": {
     "@babel/core": "^7.6.0",
@@ -22,7 +49,7 @@
     "eslint": "^6.3.0",
     "jest": "^24.9.0",
     "metro-react-native-babel-preset": "^0.56.0",
-    "react-test-renderer": "16.8.6"
+    "react-test-renderer": "16.9.0"
   },
   "jest": {
     "preset": "react-native"

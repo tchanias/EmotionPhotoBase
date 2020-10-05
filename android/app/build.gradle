@@ -129,10 +129,15 @@ android {
 
     defaultConfig {
         applicationId "com.emotionphotobase"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion 21
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
+        missingDimensionStrategy 'react-native-camera', 'mlkit'
+    }
+     dexOptions {
+        jumboMode true 
     }
     splits {
         abi {
@@ -149,6 +154,14 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+          release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword MYAPP_UPLOAD_STORE_PASSWORD
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            }
+          }
     }
     buildTypes {
         debug {
@@ -160,6 +173,7 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
@@ -188,11 +202,18 @@ android {
 }
 
 dependencies {
-    compile project(':react-native-image-picker')
-    compile project(':react-native-fetch-blob')
+    
+    implementation project(':@react-native-community_async-storage')
+    implementation project(':react-native-image-picker')
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.0.0' 
+    implementation(project(":react-native-google-signin"))
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "com.facebook.react:react-native:+"  // From node_modules
-compile project(':react-native-image-picker')
+    implementation "com.google.android.gms:play-services-base:16.1.0"
+    implementation ("com.google.android.gms:play-services-gcm:17.0.0") {
+force = true;
+}
     if (enableHermes) {
       def hermesPath = "../../node_modules/hermesvm/android/";
       debugImplementation files(hermesPath + "hermes-debug.aar")
@@ -210,3 +231,4 @@ task copyDownloadableDepsToLibs(type: Copy) {
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+apply plugin: 'com.google.gms.google-services'
